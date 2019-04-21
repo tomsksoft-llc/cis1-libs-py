@@ -50,7 +50,7 @@ if '__main__':
     if sys.argv[1] == '--help':
         usage()
     else:
-        mod_h, mod_b = False, False
+        mod_h, mod_b,commit_id,ref = False, False, False, False
         for arg in range(len(sys.argv)):
             if sys.argv[arg] == '-h':
                 mod_h = True
@@ -68,14 +68,8 @@ if '__main__':
         try:
             if dir is None:
                 raise Exception("fatal:the last argument should be <dir>")
-            if mod_h and mod_b:
-                res = repo(rep, commit_id, ref, dir, mod_h, mod_b)
-            elif mod_h:
-                res = repo(rep, commit_id, None, dir, mod_h, mod_b)
-            elif mod_b:
-                res = repo(rep, None, ref, dir, mod_h, mod_b)
-            else:
-                res = repo(rep, None, None, dir, mod_h, mod_b)
+            
+            res = repo(rep, commit_id, ref, dir, mod_h, mod_b)
             print(res)
         except Exception as err:
             print(err)
