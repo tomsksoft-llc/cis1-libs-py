@@ -2,27 +2,27 @@ from bs4 import BeautifulSoup
 import urllib.request
 import traceback
 import sys
-def start(url, link, depth, is_link, invalid_links, valid_links, main, path):
-    if is_link == '-i' and main == True:
+def start(url, link, depth, external, invalid_links, valid_links, main, path):
+    if not external and main:
         path.append(url)
         links,static_files = get_links(url)
         print('Checking ' + url + '...')
-        check_i(url, links, static_files, depth-1, is_link, invalid_links, valid_links, True, path)
-        print('\n --------------------')
-    elif is_link == '-i' and main == False:
+        check_i(url, links, static_files, depth-1, external, invalid_links, valid_links, True, path)
+        print('\n')
+    elif not external and not main:
         links, static_files = get_links(url + '/' + link)
         path.append(link)
-        check_i(url, links, static_files, depth-1, is_link, invalid_links, valid_links, False, path)
-    elif is_link == '-e' and main == True:
+        check_i(url, links, static_files, depth-1, external, invalid_links, valid_links, False, path)
+    elif external and main:
         path.append(url)
         links,static_files = get_links(url)
         print('Checking ' + url + '...')
-        check_e(url, links, static_files, depth-1, is_link, invalid_links, valid_links, True, path)
-        print('\n --------------------')
-    elif is_link == '-i' and main == False:
+        check_e(url, links, static_files, depth-1, external, invalid_links, valid_links, True, path)
+        print('\n')
+    elif external and not main:
         links, static_files = get_links(url + '/' + link)
         path.append(link)
-        check_e(url, links, static_files, depth-1, is_link, invalid_links, valid_links, False, path)
+        check_e(url, links, static_files, depth-1, external, invalid_links, valid_links, False, path)
         
 def get_links(url):
 
@@ -43,7 +43,7 @@ def get_links(url):
 
     return links, static_files
 
-def check_e(url, links, static_files, depth, is_link, invalid_links, valid_links, main, path):
+def check_e(url, links, static_files, depth, external, invalid_links, valid_links, main, path):
     for link in static_files:
         try:
             if (link not in valid_links) and (link not in invalid_links):
@@ -65,13 +65,13 @@ def check_e(url, links, static_files, depth, is_link, invalid_links, valid_links
                     resp = urllib.request.urlopen(link)
                     valid_links[link] = 'external'
                     if depth != 0:
-                        start(link, '', depth, is_link, invalid_links, valid_links, False, path)
+                        start(link, '', depth, external, invalid_links, valid_links, False, path)
 
                 except:
                     resp = urllib.request.urlopen(url + '/' + link)
                     valid_links[link] = 'internal'
                     if depth != 0:
-                        start(url, link, depth, is_link, invalid_links, valid_links, False, path)
+                        start(url, link, depth, external, invalid_links, valid_links, False, path)
             
 
         except Exception as err:
@@ -105,7 +105,7 @@ def check_i(url, links, static_files, depth, is_link, invalid_links, valid_links
                 invalid_links[link] = (err, url, path)
 
             if depth != 0:
-                start(url, link, depth, is_link, invalid_links, valid_links, False, path)
+                start(url, link, depth, external, invalid_links, valid_links, False, path)
     if main:
         end_status(url, valid_links, invalid_links)
 
@@ -127,35 +127,40 @@ def end_status(url, valid_links, invalid_links):
             else:
                 print (url)
 
-    
+def usage():
+    print('''
+usage:
+
+link_check <url> <depth_to_check> <check_only_internal>
+url - url from which to start checking
+depth_to_check 1,2,3,.. - depth checking
+check_only_internal = True|False - check external links or only internal
+
+Return value:
+
+0 - always
+non zero - if any error during start script
+''')
 if '__main__':
 
 
-    par = ['-e','-i']
-    try:
-        
-        if sys.argv[0] == '--help':
-            print('''
-        <link>                     Site link
-        -i                         Check only internal links
-        -e                         Check internal and external links
-        <depth>                    Site check depth''')
-
-        if int(sys.argv[2])>0 and (sys.argv[3] in par):
-            start(sys.argv[1],'', int(sys.argv[2]), sys.argv[3],{},{}, True, [])
-        elif int(sys.argv[2])<1:
-            print('fatal: depth should be > 0')
-        else:
-            print("""
-fatal: unknown parameter
-
-usage: [depth] [-i] [-e]
-        <link> [<agrs>]""")
-    except:
-        print("""
-usage: [depth] [-i] [-e]
-        <link> [<agrs>]""")
-
-        
     
+    if sys.argv == '--help':
+        usage()
+    try:
+        url = sys.argv[1]
+        depth = int(sys.argv[2])
+        external = bool(sys.argv[3])
+        if depth <= 0:
+            raise Exception('depth must be > 0')
+        if (external != True) and (external != False):
+            raise Exception()
+        start(url, '', depth, external, {}, {}, True, [])
+        
+
+    except Exception as err:
+        print(err)
+        usage()
+        
+
     
