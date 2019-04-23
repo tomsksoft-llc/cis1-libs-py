@@ -150,11 +150,18 @@ if '__main__':
     try:
         url = sys.argv[1]
         depth = int(sys.argv[2])
-        external = bool(sys.argv[3])
+        
+        external = sys.argv[3]
+        if external == 'False':
+            external = False
+        elif external == 'True':
+            external = True
+        else:
+            raise Exception()
+        
         if depth <= 0:
             raise Exception('depth must be > 0')
-        if (external != True) and (external != False):
-            raise Exception()
+
         start(url, '', depth, external, {}, {}, True, [])
         
 
