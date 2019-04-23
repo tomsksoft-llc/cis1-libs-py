@@ -66,7 +66,7 @@ if '__main__':
         dir = dir[0]
         
         try:
-            if dir is None:
+            if (dir is None) and (dir != rep):
                 raise Exception("fatal:the last argument should be <dir>")
             
             res = repo(rep, commit_id, ref, dir, mod_h, mod_b)
