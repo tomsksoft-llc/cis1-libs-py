@@ -8,5 +8,7 @@ os.chdir('..')
 process = subprocess.Popen('.\link_check.py {0} {1} {2}'.format(url,depth,external), stdout=subprocess.PIPE, shell=True)
 output = process.communicate()
 res = output[0].decode('utf8')
+code = process.poll()
 print(res)
+print('Code: ',code)
     

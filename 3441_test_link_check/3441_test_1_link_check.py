@@ -4,12 +4,20 @@ import sys
 
 
 
-url = sys.argv[1]
-depth = int(sys.argv[2])
-external = sys.argv[3]
+url = 'http://tomsksoft.ru/'
+depth = 0
+external = 'True'
 os.chdir('..')
 process = subprocess.Popen('.\link_check.py {0} {1} {2}'.format(url,depth,external), stdout=subprocess.PIPE, shell=True)
 output = process.communicate()
 res = output[0].decode('utf8')
-print(res)
+code = process.poll()
+print('Result: \n',res)
+print('Code: ',code)
+if 'usage:' in res:
+    usage = True
+else:
+    usage = False
+
+print('Is usage = ', usage)
     
