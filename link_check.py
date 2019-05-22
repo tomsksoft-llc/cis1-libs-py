@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import urllib.request
 import traceback
 import sys
+from builtins import SystemExit
 def start(url, link, depth, external, invalid_links, valid_links, main, path):
     if not external and main:
         path.append(url)
@@ -145,9 +146,11 @@ if '__main__':
 
 
     
-    if sys.argv == '--help':
-        usage()
+    
     try:
+        if sys.argv[1] == '--help':
+            usage()
+            raise SystemExit(0)
         url = sys.argv[1]
         depth = int(sys.argv[2])
         
@@ -157,7 +160,7 @@ if '__main__':
         elif external == 'True':
             external = True
         else:
-            raise Exception()
+            raise Exception('External must be True or False')
         
         if depth <= 0:
             raise Exception('depth must be > 0')
