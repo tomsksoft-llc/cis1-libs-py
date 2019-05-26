@@ -1,7 +1,7 @@
 import subprocess
 import os
 import sys
-from builtins import SystemExit
+
 
 # Run program and return code
 def check(url, depth, external):
@@ -14,7 +14,7 @@ def check(url, depth, external):
 def check_code(code):
     if code == 1:
         print('link_check.py has an error')
-        raise SystemExit(1)
+        raise sys.exit(1)
 
 if '__main__':
     url = 'https://deskroll.com/'
@@ -67,7 +67,7 @@ if '__main__':
 
 # If at least one return code is not correct return 1
     if correct:
-        raise SystemExit(0)
+        raise sys.exit(0)
     else:
-        raise SystemExit(1)
+        raise sys.exit(1)
 

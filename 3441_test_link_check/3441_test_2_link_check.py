@@ -1,7 +1,6 @@
 import subprocess
 import os
 import sys
-from builtins import SystemExit
 
 # Run program and return code
 def check(url, depth, external):
@@ -20,7 +19,7 @@ if '__main__':
 # If program return code = 0 program works correctly
     if code == 1:
         print('Program have exceptions')
-        raise SystemExit(1)
+        raise sys.exit(1)
     else:
         print('Program worked correctly')
-        raise SystemExit(0)
+        raise sys.exit(0)
