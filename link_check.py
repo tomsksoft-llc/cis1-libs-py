@@ -1,7 +1,7 @@
 import sys
-import bs4
-import re
 import requests
+import httplib2
+from bs4 import BeautifulSoup, SoupStrainer
 
 
 class Link:
@@ -24,9 +24,6 @@ def start(url, depth, main):
 
 def check(urls, parent_link, depth, main):
     for link in urls:
-        if main:
-            print('MAIN-----')
-        #print(depth)
         if depth != 0:
             new_link = Link(link, None, parent_link, None)
             links.append(new_link)
@@ -37,8 +34,9 @@ def check(urls, parent_link, depth, main):
 
 
 def end_status():
-    print('Web site: {0} has invalid URLs:'.format(main_link.link))
     print(len(links))
+    print('Web site: {0} has invalid URLs:'.format(main_link.link))
+
     for link in links:
         if not link.valid:
             print('{0} on parent url {1} ({2})'.format(link.link, link.parent, link.status))
@@ -48,90 +46,56 @@ def end_status():
             print(link.link)
 
 
+def link_add(response, tag, attr):
+    added_links = []
+    for link in BeautifulSoup(response, "html.parser", from_encoding="iso-8859-1", parse_only=SoupStrainer(tag)):
+        if link.has_attr(attr):
+            added_links.append(link[attr])
+    return added_links
+
 
 def get_links(url):
     try:
-        result = requests.get(url.link)
+        http = httplib2.Http()
+        status, response = http.request(url.link)
+
         url.valid = True
-        soup = bs4.BeautifulSoup(res.text, "html.parser")
-        urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+',
-                          result.text)
+
         external_links = []
         internal_links = []
         url.link = url.link.replace('www.', '')
-
-        for link in urls:
-            link = link.replace('www.', '')
-            if link not in check_links:
-
-                check_links.append(link)
-                if url.link in link:
-
-                    internal_links.append(link)
-                else:
-
-                    external_links.append(link)
-
         if not url.parent:
             url.parent = main_link.link
-        for href in soup.find_all('a', href=True):
+        added_links = []
+        added_links += link_add(response, 'a', 'href') + \
+                    link_add(response, 'link', 'href') + \
+                    link_add(response, 'script', 'src') + \
+                    link_add(response, 'source', 'srcset')
 
-
-            link = href['href']
+        for link in added_links:
             link = link.replace('www.', '')
-
-            href_external, href_internal = check_teg(link, url, internal_links, external_links)
-            internal_links += href_internal
-            external_links += href_external
-
-        for href in soup.find_all('link', href=True):
-            link = href['href']
-            link = link.replace('www.', '')
-
-            href_external, href_internal = check_teg(link, url, internal_links, external_links)
-
-            internal_links += href_internal
-            external_links += href_external
-
-        for src in soup.find_all('script', src=True):
-            link = src['src']
-            link = link.replace('www.', '')
-
-            src_external, src_internal = check_teg(link, url, internal_links, external_links)
-            internal_links += src_internal
-            external_links += src_external
-
-        for srcset in soup.find_all('source', srcset=True):
-            link = srcset['srcset']
-            link = link.replace('www.', '')
-
-            srcset_external, srcset_internal = check_teg(link, url, internal_links, external_links)
-            internal_links += srcset_internal
-            external_links += srcset_external
+            new_internal, new_external = check_teg(link, url)
+            internal_links += new_internal
+            external_links += new_external
 
         return external_links, internal_links
 
     except Exception as error:
         url.valid = False
-
         url.status = type(error).__name__
 
         return None, None
 
 
-def check_teg(link, url, internal_links, external_links):
-
+def check_teg(link, url):
     internal_new_link = []
     external_new_link = []
     if (link not in check_links) and ((url.parent + link) not in check_links):
-
         check_links.append(link)
-        if (link not in internal_links) and (link not in external_links):
-
-            if 'http' not in link:
-                internal_new_link.append(url.parent + link)
-            else:
-                external_new_link.append(link)
+        if 'http' not in link:
+            internal_new_link.append(url.parent + link)
+        else:
+            external_new_link.append(link)
 
     return external_new_link, internal_new_link
 
