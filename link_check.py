@@ -1,56 +1,73 @@
 import sys
 import requests
 import httplib2
+import re
 from bs4 import BeautifulSoup, SoupStrainer
 
 
 class Link:
-    def __init__(self, link, valid, parent, status):
+    def __init__(self, link, valid, parent_url, status, external):
         self.valid = valid
-        self.parent = parent
+        self.parent_url = parent_url
         self.link = link
         self.status = status
-        pass
+        self.external = external
 
 
-def start(url, depth, main):
+def link_check(url, depth, main_links_check):
     external_links, internal_links = get_links(url)
-    if external and external_links:
-        check(internal_links + external_links, url.link, depth - 1, main)
-    elif not external and internal_links:
-        check(internal_links, url.link, depth - 1, main)
-    pass
+    if internal_links:
+        for link in internal_links:
+            if depth != 0:
+                if url.external:
+                    new_url = Link(
+                        link, None,
+                        url.link, None,
+                        False
+                    )
+                else:
+                    new_url = Link(
+                        link, None,
+                        url.parent_url, None,
+                        False
+                    )
+                urls.append(new_url)
+                link_check(new_url, depth - 1, False)
+
+    if external_check and external_links:
+        for link in external_links:
+            if depth != 0:
+                new_url = Link(
+                    link, None,
+                    url.link, None,
+                    True
+                )
+                urls.append(new_url)
+                link_check(new_url, depth - 1, False)
+
+    if main_links_check:
+        complete_check()
 
 
-def check(urls, parent_link, depth, main):
-    for link in urls:
-        if depth != 0:
-            new_link = Link(link, None, parent_link, None)
-            links.append(new_link)
-            start(new_link, depth, False)
-    if main:
-        end_status()
-    pass
-
-
-def end_status():
-    print(len(links))
+def complete_check():
+    print(len(urls))
     print('Web site: {0} has invalid URLs:'.format(main_link.link))
-
-    for link in links:
-        if not link.valid:
-            print('{0} on parent url {1} ({2})'.format(link.link, link.parent, link.status))
+    for url in urls:
+        if not url.valid:
+            print('{0} on parent url {1} ({2})'.format(url.link, url.parent_url, url.status))
     print('URLs on {0} checked, all links work.Valid URLs:'.format(main_link.link))
-    for link in links:
-        if link.valid:
-            print(link.link)
+    for url in urls:
+        if url.valid:
+            print(url.link + ' -------- ', url.parent_url)
 
 
-def link_add(response, tag, attr):
+def link_search(response, tag, attribute):
     added_links = []
-    for link in BeautifulSoup(response, "html.parser", from_encoding="iso-8859-1", parse_only=SoupStrainer(tag)):
-        if link.has_attr(attr):
-            added_links.append(link[attr])
+    for link in BeautifulSoup(response, "html.parser",
+                              from_encoding="iso-8859-1",
+                              parse_only=SoupStrainer(tag)):
+        if link.has_attr(attribute):
+            added_links.append(link[attribute])
     return added_links
 
 
@@ -58,26 +75,21 @@ def get_links(url):
     try:
         http = httplib2.Http()
         status, response = http.request(url.link)
-
         url.valid = True
-
         external_links = []
         internal_links = []
-        url.link = url.link.replace('www.', '')
-        if not url.parent:
-            url.parent = main_link.link
-        added_links = []
-        added_links += link_add(response, 'a', 'href') + \
-                    link_add(response, 'link', 'href') + \
-                    link_add(response, 'script', 'src') + \
-                    link_add(response, 'source', 'srcset')
+        added_links = link_search(response, 'a', 'href') \
+                      + link_search(response, 'link', 'href') \
+                      + link_search(response, 'script', 'src') \
+                      + link_search(response, 'source', 'srcset') \
 
         for link in added_links:
-            link = link.replace('www.', '')
-            new_internal, new_external = check_teg(link, url)
-            internal_links += new_internal
-            external_links += new_external
-
+            if (link not in check_links) and ((url.parent_url + link) not in check_links):
+                check_links.append(link)
+                if re.match(regex, link):
+                    external_links.append(link)
+                else:
+                    internal_links.append(url.parent_url + link)
         return external_links, internal_links
 
     except Exception as error:
@@ -85,19 +97,6 @@ def get_links(url):
         url.status = type(error).__name__
 
         return None, None
-
-
-def check_teg(link, url):
-    internal_new_link = []
-    external_new_link = []
-    if (link not in check_links) and ((url.parent + link) not in check_links):
-        check_links.append(link)
-        if 'http' not in link:
-            internal_new_link.append(url.parent + link)
-        else:
-            external_new_link.append(link)
-
-    return external_new_link, internal_new_link
 
 
 def usage():
@@ -117,28 +116,41 @@ non zero - if any error during start script
 
 
 if '__main__':
-
+    regex = re.compile(
+        r'^(?:http|ftp)s?://'
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
+        r'localhost|'
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+        r'(?::\d+)?'
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE
+    )
     try:
         if sys.argv[1] == '--help':
             usage()
             raise sys.exit(0)
-        res = requests.get(sys.argv[1])
-        main_link = Link(sys.argv[1], True, None, None)
-        depth = int(sys.argv[2]) + 1
-        links = []
-        check_links = []
-        external = sys.argv[3]
-        if external == 'False':
-            external = False
-        elif external == 'True':
-            external = True
+
+        result = requests.get(sys.argv[1])
+        main_link = Link(
+            sys.argv[1], True,
+            sys.argv[1], None,
+            True,
+        )
+        initial_depth = int(sys.argv[2])
+        urls = []
+        check_links = [main_link.link]
+        external_check = sys.argv[3]
+
+        if external_check == 'False':
+            external_check = False
+        elif external_check == 'True':
+            external_check = True
         else:
             raise Exception('External must be True or False')
-
-        if depth <= 0:
+        if initial_depth <= 0:
             raise Exception('Depth must be > 0')
 
-        start(main_link, depth, True)
+        link_check(main_link, initial_depth, True)
+
     except Exception as err:
         print(err)
         usage()
