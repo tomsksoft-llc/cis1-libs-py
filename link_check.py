@@ -3,7 +3,7 @@ import requests
 import httplib2
 import re
 from bs4 import BeautifulSoup, SoupStrainer
-
+from urllib.parse import urlparse
 
 class Link:
     def __init__(self, link, valid, parent_url, status, external):
@@ -91,7 +91,9 @@ def get_links(url):
                     external_links.append(link)
                 else:
                     if url.external:
-                        internal_links.append(url.link + link)
+                        parsed_uri = urlparse(url.link)
+                        external_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+                        internal_links.append(external_url + link)
                     else:
                         internal_links.append(url.parent_url + link)
         return external_links, internal_links
