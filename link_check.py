@@ -24,6 +24,7 @@ def link_check(url, depth, main_links_check):
                         link, None,
                         url.link, None,
                         False
+
                     )
                 else:
                     new_url = Link(
@@ -58,7 +59,7 @@ def complete_check():
     print('URLs on {0} checked, all links work.Valid URLs:'.format(main_link.link))
     for url in urls:
         if url.valid:
-            print(url.link + ' -------- ', url.parent_url)
+            print(url.link)
 
 
 def link_search(response, tag, attribute):
@@ -89,7 +90,10 @@ def get_links(url):
                 if re.match(regex, link):
                     external_links.append(link)
                 else:
-                    internal_links.append(url.parent_url + link)
+                    if url.external:
+                        internal_links.append(url.link + link)
+                    else:
+                        internal_links.append(url.parent_url + link)
         return external_links, internal_links
 
     except Exception as error:
