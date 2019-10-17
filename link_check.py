@@ -5,6 +5,7 @@ import re
 from bs4 import BeautifulSoup, SoupStrainer
 from urllib.parse import urlparse
 
+
 class Link:
     def __init__(self, link, valid, parent_url, status, external):
         self.valid = valid
@@ -24,7 +25,6 @@ def link_check(url, depth, main_links_check):
                         link, None,
                         url.link, None,
                         False
-
                     )
                 else:
                     new_url = Link(

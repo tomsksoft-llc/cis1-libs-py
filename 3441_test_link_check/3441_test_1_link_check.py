@@ -14,7 +14,7 @@ def check(url, depth, external):
 
 # If program code = 1 return 1
 def check_code(code):
-    if code == 1:
+    if code != 0:
         print('link_check.py has an error')
         raise sys.exit(1)
 
