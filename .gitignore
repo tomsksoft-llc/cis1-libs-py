@@ -5,3 +5,6 @@
 !*.py
 
 lib_config.py
+
+!*/
+!*/*.py
