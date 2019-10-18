@@ -1,0 +1,7 @@
+*
+
+!.gitignore
+
+!*.py
+
+lib_config.py
