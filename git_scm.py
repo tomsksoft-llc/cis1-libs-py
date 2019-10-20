@@ -2,33 +2,33 @@ import sys
 import subprocess
 import os
 
-def repo(rep, commit_id, ref, dir, mod_h, mod_b):
-    FNULL = open(os.devnull, 'w')
-    if mod_b: 
-        subprocess.run('git clone {0} -b {1} {2}'.format(rep,ref,dir))
-    else:
-        subprocess.run('git clone {0} {1}'.format(rep,dir))
-    
-    os.chdir(dir)
-    subprocess.run('git rev-parse --is-inside-work-tree', stdout=FNULL)
-    
-    if not mod_h:
-        process = subprocess.Popen('git rev-parse --verify HEAD', stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()
-        commit_id = output[0].decode('utf8')
-        commit_id = commit_id[:-2]
 
-        
-    
-    subprocess.run('git reset --hard', stdout=FNULL)
-    subprocess.run('git clean -fdx', stdout=FNULL)
-    subprocess.run('git fetch --tags --progress {0} +refs/heads/*:refs/remotes/origin/*'.format(rep), stdout=FNULL)
-    subprocess.run('git rev-parse {0}'.format(commit_id), stdout=FNULL)
-    subprocess.run('git config core.sparsecheckout', stdout=FNULL)
-    subprocess.run('git checkout -f {0}'.format(commit_id), stdout=FNULL)
-    
-   
-    
+def download_repository():
+    FNULL = open(os.devnull, 'w')
+    if mod_b:
+        subprocess.run(['git', 'clone', repository_url, '-b', branch, repository_dir])
+    else:
+        subprocess.run(['git', 'clone', repository_url, repository_dir])
+
+    os.chdir(repository_dir)
+    subprocess.run('git rev-parse --is-inside-work-tree', stdout=FNULL)
+
+    if not mod_h:
+        process = subprocess.Popen('git rev-parse --verify HEAD', stdout=subprocess.PIPE, shell=False)
+        output = process.communicate()
+        main_commit_id = output[0].decode('utf8')
+        main_commit_id = main_commit_id[:-2]
+    else:
+        main_commit_id = commit_id
+
+    subprocess.run(['git', 'reset', '--hard'], stdout=FNULL)
+    subprocess.run(['git', 'clean', '-fdx'], stdout=FNULL)
+    subprocess.run(['git', 'fetch', '--tags', '--progress', repository_url, '+refs/heads/*:refs/remotes/origin/*'], stdout=FNULL)
+    subprocess.run(['git', 'rev-parse', main_commit_id], stdout=FNULL)
+    subprocess.run(['git', 'config', 'core.sparsecheckout'], stdout=FNULL)
+    subprocess.run(['git', 'checkout', '-f', commit_id], stdout=FNULL)
+
+
 def usage():
     print("""
 usage:
@@ -45,78 +45,64 @@ Return value:
 0 - if success
 non zero - if any error
 """)
+
+
 if '__main__':
     try:
         if sys.argv[1] == '--help':
             usage()
             raise sys.exit(0)
     except Exception as err:
-            print(err)
-            usage()
-            raise sys.exit(0)
-        
-    mod_h, mod_b,commit_id,ref = False, False, False, False
-    dir = sys.argv[-1:]
-    dir = dir[0]
-    
+        print(err)
+        usage()
+        raise sys.exit(0)
+
+    mod_h, mod_b, commit_id, branch = False, False, False, False
+    repository_dir = sys.argv[-1:]
+    repository_dir = repository_dir[0]
+
     for arg in range(len(sys.argv)):
         if sys.argv[arg] == '-h':
             try:
                 mod_h = True
-                commit_id = sys.argv[arg+1]                    
-                sys.argv[arg+1] = None
+                commit_id = sys.argv[arg + 1]
+                sys.argv[arg + 1] = None
             except:
                 print("After argument '-h' must be 'commit_id'")
                 usage()
                 raise sys.exit(0)
-            if commit_id == dir:
+            if commit_id == repository_dir:
                 print("After argument '-h' must be 'commit_id'")
                 usage()
-                raise sys.exit(0) 
+                raise sys.exit(0)
         if sys.argv[arg] == '-b':
             try:
                 mod_b = True
-                ref = sys.argv[arg+1]
-                sys.argv[arg+1] = None
+                branch = sys.argv[arg + 1]
+                sys.argv[arg + 1] = None
             except:
                 print("After argument '-b' must be 'ref'")
                 usage()
                 raise sys.exit(0)
-            if ref == dir:
+            if branch == repository_dir:
                 print("After argument '-b' must be 'ref'")
                 usage()
                 raise sys.exit(0)
-                    
-                
-        rep = sys.argv[1]
-        
-        args = [
-            rep,
-            mod_h,
-            mod_b,
-            commit_id,
-            ref
-                
-            ]
-        
-        
-        
-        
+
+    repository_url = sys.argv[1]
+    args = [
+        repository_url,
+        mod_h,
+        mod_b,
+        commit_id,
+        branch,
+    ]
+
     try:
-        if (dir is None) or (dir in args):
-                
+        if (repository_dir is None) or (repository_dir in args):
             raise Exception("fatal:the last argument should be <dir>")
-            
-        repo(rep, commit_id, ref, dir, mod_h, mod_b)
+
+        download_repository()
     except Exception as err:
         print(err)
         usage()
-            
-            
-            
-            
-            
-            
-                
-        
-
