@@ -14,7 +14,7 @@ def download_repository():
     subprocess.run('git rev-parse --is-inside-work-tree', stdout=FNULL)
 
     if not mod_h:
-        process = subprocess.Popen('git rev-parse --verify HEAD', stdout=subprocess.PIPE, shell=False)
+        process = subprocess.Popen(['git', 'rev-parse', '--verify', 'HEAD'], stdout=subprocess.PIPE, shell=False)
         output = process.communicate()
         main_commit_id = output[0].decode('utf8')
         main_commit_id = main_commit_id[:-2]
