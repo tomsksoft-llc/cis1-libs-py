@@ -1,76 +1,41 @@
-import subprocess
 import sys
-
+sys.path.append('../')
+import lib_test_runner
 
 # Run program and return code
-def check(url, depth, external):
-    process = subprocess.Popen('python ../link_check.py {0} {1} {2}'.format(url, depth, external),
-                               stdout=subprocess.PIPE, shell=True)
-    output = process.communicate()
-    res = output[0].decode('utf8')
-    code = process.poll()
-    return res, code
-
-
-# If program code = 1 return 1
-def check_code(code):
-    if code != 0:
-        print('link_check.py has an error')
-        raise sys.exit(1)
-
+def run_program(depth, external):
+    url = 'https://deskroll.com/'
+    res = lib_test_runner.run(['../link_check.py', url, depth, external], "Message for report")
+    return res
 
 if '__main__':
-    url = 'https://deskroll.com/'
-    # Depth usage check and check his return code
-    print('Depth usage check...')
-    depth_res, depth_code = check(url, 0, 'False')
-    check_code(depth_code)
-    print('Depth usage result:\n', depth_res)
-
-    # External usage check and check his return code
-    print('External usage check...')
-    external_res, external_code = check(url, 1, 'Folse')
-    check_code(external_code)
-    print('External usage result:\n', external_res)
-
-    # Parameters usage check and check his return code
-    print('Parameters usage check...')
-    parameters_res, parameters_code = check('', '', '')
-    check_code(parameters_code)
-    print('Parameters usage check result:\n', parameters_res)
-
-    # --help usage check and check his return code
-    print('Checking --help usage:')
-    help_res, help_code = check('--help', '', '')
-    check_code(help_code)
-    print('--help usage check result:\n', help_res)
-
-    # Return codes should include usage and error pointers depending on the type of verification
-    correct = True
-    if (('list index out of range' in parameters_res) or ('invalid literal for int()' in parameters_res)) and (
-            'usage' in parameters_res):
-        print('Parameters check successful')
+    status = True
+    # Depth usage check
+    res = run_program('0', 'False')
+    if res == 2:
+        print('Depth usage check successful')
     else:
-        correct = False
-        print('Parameters check is not correct')
-    if (('Depth must be > 0' in depth_res) or ('invalid literal for int()' in depth_res)) and ('usage' in depth_res):
-        print('Depth check successful')
+        print('Depth usage check incorrect')
+        status = False
+    # External usage check
+    res = run_program('1', 'Folse')
+    if res == 2:
+        print('External usage check successful')
     else:
-        correct = False
-        print('Depth check is not correct')
-    if ('External must be True or False' in external_res) and ('usage' in external_res):
-        print('External check successful')
+        print('External usage check incorrect')
+        status = False
+    # Parameters usage check
+    res = run_program('', '')
+    if res == 2:
+        print('Parameters usage check successful')
     else:
-        correct = False
-        print('External check is not correct')
-    if 'usage' in help_res:
-        print('Help check successful')
+        print('Parameters usage check incorrect')
+        status = False
+    # Final check
+    if status:
+        print('All checks successful')
+        lib_test_runner.ok()
     else:
-        correct = False
-        print('Help check is not correct')
+        print('Check have error')
+        lib_test_runner.fail()
 
-    # If at least one return code is not correct return 1
-    if correct:
-        raise sys.exit(0)
-    else:
-        raise sys.exit(1)

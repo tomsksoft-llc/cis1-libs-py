@@ -160,3 +160,4 @@ if '__main__':
     except Exception as err:
         print(err)
         usage()
+        sys.exit(2)

@@ -1,13 +1,14 @@
 import sys
+
 sys.path.append('../')
 import lib_test_runner
 
 if '__main__':
     url = 'https://deskroll.com/'
     depth = '1'
-    external = 'False'    
+    external = 'False'
     res = lib_test_runner.run(['../link_check.py', url, depth, external], "Message for report")
     if res:
-         lib_test_runner.fail()
+        lib_test_runner.fail()
     else:
-         lib_test_runner.ok()
+        lib_test_runner.ok()
