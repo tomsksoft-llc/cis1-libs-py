@@ -1,0 +1,12 @@
+*
+
+!.gitignore
+
+!*.py
+
+lib_config.py
+!lib_config.py.sample
+
+
+!*/
+!*/*.py
