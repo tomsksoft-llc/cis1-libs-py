@@ -1,1 +1,7 @@
 argparse
+sys
+requests
+httplib2
+re
+bs4
+urllib.parse
