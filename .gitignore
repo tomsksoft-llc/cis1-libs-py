@@ -7,6 +7,11 @@
 lib_config.py
 !lib_config.py.sample
 
+!requirements.txt
+
 
 !*/
 !*/*.py
+
+!package.txt
+!package.sh
