@@ -30,3 +30,4 @@ if '__main__':
         lib_test_runner.fail()
     else:
         lib_test_runner.ok()
+
