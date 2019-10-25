@@ -5,14 +5,15 @@ import lib_test_runner
 # Run program and return code
 def run_program(depth, external):
     url = 'https://deskroll.com/'
-    res = lib_test_runner.run(['../link_check.py', url, depth, external], "Check usages")
+    res = lib_test_runner.run(['../link_check.py', url, depth, external], "Check with incorrect args")
+
     return res
 
 if '__main__':
     status = True
     # Depth usage check
     res = run_program('0', 'False')
-    if res !- 2:
+    if res != 2:
         status = False
     # External usage check
     res = run_program('1', 'Folse')
@@ -26,5 +27,6 @@ if '__main__':
     if status:
         lib_test_runner.ok()
     else:
-        lib_test_runner.fail()
+        lib_test_runner.fall()
+
 
