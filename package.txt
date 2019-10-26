@@ -1,2 +1,0 @@
-lib_config.py.sample
-link_check.py

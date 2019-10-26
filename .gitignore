@@ -2,16 +2,15 @@
 
 !.gitignore
 
-!*.py
+!devguide.md
+!overview.md
+!version.txt
 
-lib_config.py
-!lib_config.py.sample
+!tests/
+!tests/*.py
+tests/lib_config.py
 
-!requirements.txt
-
-
-!*/
-!*/*.py
-
-!package.txt
-!package.sh
+!libs-files/
+!ligs-files/*.py
+!ligs-files/lib_config.py.sample
+!ligs-files/requirements.txt
