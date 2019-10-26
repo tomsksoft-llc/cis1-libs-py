@@ -17,11 +17,11 @@ def run(args: List[str], msg: str = None):
     proc.terminate()
     args_str = ' '.join(args)
     if code:
-        print(f"{args_str:.<30}{msg:.^30}{ERR:.>10}")
+        print(f"{ERR:.<10}{msg:.^30}{args_str:.>30}")
         print(stdout.decode('utf-8'))
         print(stderr.decode('utf-8'))
     else:
-        print(f"{args_str:.<30}{msg:.^30}{OK:.>10}")
+        print(f"{OK:.<10}{msg:.^30}{args_str:.>30}")
     return code
 
 
