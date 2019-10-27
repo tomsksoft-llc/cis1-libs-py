@@ -12,7 +12,7 @@
 !tests/*.py
 tests/lib_config.py
 
-!libs-files/
-!ligs-files/*.py
-!ligs-files/lib_config.py.sample
-!ligs-files/requirements.txt
+!lib-files/
+!lig-files/*.py
+!lig-files/lib_config.py.sample
+!lig-files/requirements.txt
