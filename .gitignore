@@ -2,9 +2,11 @@
 
 !.gitignore
 
-!devguide.md
-!overview.md
 !version.txt
+
+!docs/
+!docs/devguide.md
+!docs/overview.md
 
 !tests/
 !tests/*.py
