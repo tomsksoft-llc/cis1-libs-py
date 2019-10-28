@@ -5,7 +5,7 @@ import lib_test_runner
 # Run program and return code
 def run_program(depth, external):
     url = 'https://deskroll.com/'
-    res = lib_test_runner.run(['../link_check.py', url, depth, external], "Check with incorrect args")
+    res = lib_test_runner.run(['../../cis1-libs/link_check.py', url, depth, external], "Check with incorrect args")
 
     return res
 

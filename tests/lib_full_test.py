@@ -37,7 +37,7 @@ def run_all_tests():
         print("FATAL...........test_runner self check failed.\nExecution aborted\n\n")
         sys.exit(3)
     print("\nTests runner self test passed, starting lib scripts tests:\n")
-
+    
     status = 0;
     for d in pathlib.Path('./').iterdir():
         if not d.is_dir(): continue

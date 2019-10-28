@@ -2,16 +2,17 @@
 
 !.gitignore
 
-!*.py
+!version.txt
 
-lib_config.py
-!lib_config.py.sample
+!docs/
+!docs/devguide.md
+!docs/overview.md
 
-!requirements.txt
+!tests/
+!tests/*.py
+tests/lib_config.py
 
-
-!*/
-!*/*.py
-
-!package.txt
-!package.sh
+!cis1-libs/
+!cis1-libs/*.py
+!cis1-libs/lib_config.py.sample
+!cis1-libs/requirements.txt

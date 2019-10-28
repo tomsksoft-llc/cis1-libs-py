@@ -7,7 +7,7 @@ if '__main__':
     url = 'https://deskroll.com/'
     depth = '1'
     external = 'False'
-    res = lib_test_runner.run(['../link_check.py', url, depth, external], "Work check")
+    res = lib_test_runner.run(['../../cis1-libs/link_check.py', url, depth, external], "Work check")
     if res:
         lib_test_runner.fail()
     else:
