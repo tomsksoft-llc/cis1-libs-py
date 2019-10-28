@@ -51,58 +51,50 @@ if '__main__':
     try:
         if sys.argv[1] == '--help':
             usage()
-            raise sys.exit(0)
+            sys.exit(0)
     except Exception as err:
         print(err)
         usage()
-        raise sys.exit(0)
-
-    mod_h, mod_b, commit_id, branch = False, False, False, False
-    repository_dir = sys.argv[-1:]
-    repository_dir = repository_dir[0]
-
-    for arg in range(len(sys.argv)):
-        if sys.argv[arg] == '-h':
-            try:
-                mod_h = True
-                commit_id = sys.argv[arg + 1]
-                sys.argv[arg + 1] = None
-            except:
-                print("After argument '-h' must be 'commit_id'")
-                usage()
-                raise sys.exit(0)
-            if commit_id == repository_dir:
-                print("After argument '-h' must be 'commit_id'")
-                usage()
-                raise sys.exit(0)
-        if sys.argv[arg] == '-b':
-            try:
-                mod_b = True
-                branch = sys.argv[arg + 1]
-                sys.argv[arg + 1] = None
-            except:
-                print("After argument '-b' must be 'ref'")
-                usage()
-                raise sys.exit(0)
-            if branch == repository_dir:
-                print("After argument '-b' must be 'ref'")
-                usage()
-                raise sys.exit(0)
-
-    repository_url = sys.argv[1]
-    args = [
-        repository_url,
-        mod_h,
-        mod_b,
-        commit_id,
-        branch,
-    ]
-
+        sys.exit(2)
     try:
+        mod_h, mod_b, commit_id, branch = False, False, False, False
+        repository_dir = sys.argv[-1:]
+        repository_dir = repository_dir[0]
+
+        for arg in range(len(sys.argv)):
+            if sys.argv[arg] == '-h':
+                try:
+                    mod_h = True
+                    commit_id = sys.argv[arg + 1]
+                    sys.argv[arg + 1] = None
+                except:
+                    raise Exception("After argument '-h' must be 'commit_id'")
+                if commit_id == repository_dir:
+                    raise Exception("After argument '-h' must be 'commit_id'")
+            if sys.argv[arg] == '-b':
+                try:
+                    mod_b = True
+                    branch = sys.argv[arg + 1]
+                    sys.argv[arg + 1] = None
+                except:
+                    raise Exception("After argument '-b' must be 'ref'")
+                if branch == repository_dir:
+                    raise Exception("After argument '-b' must be 'ref'")
+
+
+        repository_url = sys.argv[1]
+        args = [
+            repository_url,
+            mod_h,
+            mod_b,
+            commit_id,
+            branch,
+        ]
         if (repository_dir is None) or (repository_dir in args):
             raise Exception("fatal:the last argument should be <dir>")
-
         download_repository()
+        
     except Exception as err:
         print(err)
         usage()
+        sys.exit(2)
