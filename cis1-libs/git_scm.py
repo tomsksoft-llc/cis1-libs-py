@@ -49,8 +49,10 @@ non zero - if any error
 
 if '__main__':
     try:
-        if sys.argv[1] == '--help':
+        if (sys.argv[1] == '--help') or (sys.argv[1] == '-h'):
+            print('git_scm.py - download git repository.')
             usage()
+            print('Description: \nDownload git repository. By commit hash or/and branch name.')
             sys.exit(0)
     except Exception as err:
         print(err)
