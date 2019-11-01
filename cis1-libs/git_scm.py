@@ -33,7 +33,7 @@ def usage():
     print("""
 usage:
 
-git_scm <repo> [-b branch]|[-h commit_hash]<dir>
+git_scm <repo> [-b branch]|[-h commit_hash] <dir>
 
 by default get (pull and checkout) HEAD of the master branch from repo
 
@@ -50,9 +50,16 @@ non zero - if any error
 if '__main__':
     try:
         if (sys.argv[1] == '--help') or (sys.argv[1] == '-h'):
-            print('git_scm.py - download git repository.')
-            usage()
-            print('Description: \nDownload git repository. By commit hash or/and branch name.')
+            print('''
+
+git_scm.py - Dwnload git repository.
+
+Usage: git_scm <repo> [-b branch]|[-h commit_hash] <dir>
+
+Description:
+Download git repository. By commit hash or/and branch name.
+
+''')
             sys.exit(0)
     except Exception as err:
         print(err)
