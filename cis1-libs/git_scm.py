@@ -26,7 +26,7 @@ def download_repository():
     subprocess.run(['git', 'fetch', '--tags', '--progress', repository_url, '+refs/heads/*:refs/remotes/origin/*'], stdout=FNULL)
     subprocess.run(['git', 'rev-parse', main_commit_id], stdout=FNULL)
     subprocess.run(['git', 'config', 'core.sparsecheckout'], stdout=FNULL)
-    subprocess.run(['git', 'checkout', '-f', commit_id], stdout=FNULL)
+    subprocess.run(['git', 'checkout', '-f', main_commit_id], stdout=FNULL)
 
 
 def usage():
@@ -77,18 +77,22 @@ Download git repository. By commit hash or/and branch name.
                     commit_id = sys.argv[arg + 1]
                     sys.argv[arg + 1] = None
                 except:
-                    raise Exception("After argument '-h' must be 'commit_id'")
+                    usage()
+                    raise Exception("fatal: after argument '-h' must be 'commit_id'")
                 if commit_id == repository_dir:
-                    raise Exception("After argument '-h' must be 'commit_id'")
+                    usage()
+                    raise Exception("fatal: after argument '-h' must be 'commit_id'")
             if sys.argv[arg] == '-b':
                 try:
                     mod_b = True
                     branch = sys.argv[arg + 1]
                     sys.argv[arg + 1] = None
                 except:
-                    raise Exception("After argument '-b' must be 'ref'")
+                    usage()
+                    raise Exception("fatal: after argument '-b' must be 'ref'")
                 if branch == repository_dir:
-                    raise Exception("After argument '-b' must be 'ref'")
+                    usage()
+                    raise Exception("fatal: after argument '-b' must be 'ref'")
 
 
         repository_url = sys.argv[1]
@@ -101,9 +105,11 @@ Download git repository. By commit hash or/and branch name.
         ]
         if (repository_dir is None) or (repository_dir in args):
             raise Exception("fatal:the last argument should be <dir>")
-        download_repository()
+        if not os.path.isdir(repository_dir):
+            download_repository()
+        else:
+            raise Exception('fatal: path "{0}" already exists.'.format(repository_dir))
         
     except Exception as err:
         print(err)
-        usage()
         sys.exit(2)
