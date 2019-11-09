@@ -10,6 +10,8 @@
 
 !tests/
 !tests/*.py
+!tests/*
+!tests/*/*.py
 tests/lib_config.py
 
 !cis1-libs/
