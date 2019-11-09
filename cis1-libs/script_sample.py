@@ -28,106 +28,75 @@
 See devguide.md in the dir 'docs' of the library repository for all
 requirements and other details.
 
-SCRIPT USAGE
-	script_sample.py <-v|--version|-e|--error|-h|--help>
-
-	-v, --version
-		print version of the script and exit with code 0
-
-	-e, --error
-		print "ERROR" and exit with code 1
-
-	-h, --help
-		print usage and exit with 0
-
-	by default
-		print usage and exit with 2
-
-PYTHON USAGE
-	script_sample(option)
-
-	where option may be:
-		'-v':	print version of the module and return 0
-
-		'-e':	print ERROR and return 1
-
-		'-h':	print usage and return 0
-
-		in any other case:
-			print usage and return 2
-
 '''
 
 import sys
 import argparse
-
-_VERSION = "1.0.0"
+import ci_py_lib_version
 
 def script_sample(option=""):
-    '''Sample main script function
+    '''Usage as python module
 
-    Do somthing depend on option value. See "PYTHON USAGE" section for details.
+    Depending on option value do:
+        '-v': print module version number, return 0
+        '-e': print 'ERROR', return 1
+        '-h': print help message, return 0
+        in any other case: print help message, return 2
 
     Args:
-        option: String, empty by default. Possible values: "-v", "-e", "-h",
-            "--help".
+        option:  may be '-v', '-e', '-h'
 
     Returns:
-        0: if option in '-v', '-h';
-        1: if option is '-e';
-        2: if option is any other.
-        See "PYTHON USAGE" section for details.
-
+        0: if option in '-v', '-h'
+        1: if option is '-e'
+        2: if option is any other
     '''
+    if option == '-h':
+        print(script_sample.__doc__)
+        return 0
     if option == '-v':
-        print(_VERSION)
+        print(ci_py_lib_version.CI_PY_LIB_VERSION)
         return 0
     if option == '-e':
         print('ERROR')
         return 1
-    _print_usage()
+    print(script_sample.__doc__)
     return 2
 
-def _print_usage():
-    print(__doc__)
+def use_as_os_command():
+    ''' script_sample.py [COMMAND]
 
-def _main():
-    '''Command line interface to script function
+    COMMAND
+        -v, --version
+            print version of the script and exit with code 0
+        -e, --error
+            print 'ERROR' and exit with code 1
+        -h, --help
+            print help message and exit with 0
 
-    1) Parse command line.
-    2) Check its sinopsys.
-    3) Convert command line arguments to properly values for call script
-       function.
-    4) Call to script function, check result and define is it SUCCESS or FAIL.
-    5) Exit with code depeds on script function call result.
-
+    DEFAULT
+        print help message and exit with 2
     '''
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('-v', '--version', action='store_true')
     parser.add_argument('-e', '--error', action='store_true')
-    parser.usage = __doc__
-    try:
-        option = parser.parse_args()
-    except Exception as err:
-        _print_usage()
-        print(err)
-        sys.exit(2)
+    parser.add_argument('-h', '--help', action='store_true')
+    parser.usage = use_as_os_command.__doc__
+    option = parser.parse_args()
 
+    if option.help:
+        print('usage: '+use_as_os_command.__doc__)
+        sys.exit(0)
     if option.version == option.error:
-        _print_usage()
+        print('usage: '+use_as_os_command.__doc__)
         sys.exit(2)
-    elif option.version:
+    if option.version:
         arg = '-v'
     else:
         arg = '-e'
 
-    try:
-        res = script_sample(arg)
-    except Exception as err:
-        res = 3
-        print(err)
-
+    res = script_sample(arg)
     sys.exit(res)
 
 if __name__ == '__main__':
-    _main()
+    use_as_os_command()
