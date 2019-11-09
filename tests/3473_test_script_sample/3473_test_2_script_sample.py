@@ -1,7 +1,7 @@
 import sys
 sys.path.append('../')
 import lib_test_runner
-sys.path.append('../../cis1-libs')
+sys.path.append('../../scripts')
 import script_sample
 
 if __name__ == '__main__':

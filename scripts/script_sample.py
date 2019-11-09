@@ -23,7 +23,7 @@
 # Author: Ilya Bezkhodarnov
 #
 ##############################################################################
-'''It is a sample of a script that meets all requiremens for CIS Python Libs.
+'''It is a sample of a script that meets all requiremens for CI Python Libs.
 
 See devguide.md in the dir 'docs' of the library repository for all
 requirements and other details.
