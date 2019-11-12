@@ -1,2 +1,2 @@
-# cis1-libs-py
-CI Python scripts library
+# ci-py-lib
+CI Python utilities library
