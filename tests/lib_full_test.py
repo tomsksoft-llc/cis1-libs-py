@@ -9,6 +9,19 @@ import lib_config
 OK = 'OK'
 ERR = 'FAIL'
 
+
+def get_platform():
+    platforms = {
+        'linux1' : 'Linux',
+        'linux2' : 'Linux',
+        'darwin' : 'OS X',
+        'win32' : 'Windows'
+    }
+    if sys.platform not in platforms:
+        return sys.platform
+    return platforms[sys.platform]
+
+
 def run_test(d, f):
     proc = subprocess.Popen([lib_config.PYTHON3, f.name], cwd=d, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
     stdout, stderr = proc.communicate()
@@ -29,7 +42,10 @@ def run_test(d, f):
 
 
 def run_all_tests():
-    os.environ['PYTHONPATH'] = '..;../../lib-utils'
+    if get_platform() == 'Windows':
+        os.environ['PYTHONPATH'] = '..;../../lib-utils'
+    else:
+        os.environ['PYTHONPATH'] = '..:../../lib-utils'
 
     print("\nCI Python scripts lib self testing started:\n")
     f = open("test_lib_full_test.py")
