@@ -29,7 +29,7 @@ def run_test(d, f):
 
 
 def run_all_tests():
-    os.environ['PYTHONPATH'] = '..'
+    os.environ['PYTHONPATH'] = '..;../../lib-utils'
 
     print("\nCI Python scripts lib self testing started:\n")
     f = open("test_lib_full_test.py")

@@ -11,7 +11,7 @@
 !tests/*/*.py
 tests/lib_config.py
 
-!scripts/
-!scripts/*.py
-!scripts/lib_config.py.sample
-!scripts/requirements.txt
+!lib-utils/
+!lib-utils/*.py
+!lib-utils/lib_config.py.sample
+!lib-utils/requirements.txt
