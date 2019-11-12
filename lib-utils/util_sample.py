@@ -23,7 +23,7 @@
 # Author: Ilya Bezkhodarnov
 #
 ##############################################################################
-'''It is a sample of a script that meets all requiremens for CIS Python Libs.
+'''It is a sample of a script that meets all requiremens for CI Python Libs.
 
 See devguide.md in the dir 'docs' of the library repository for all
 requirements and other details.
@@ -34,7 +34,7 @@ import sys
 import argparse
 import ci_py_lib_version
 
-def script_sample(option=""):
+def util_sample(option=""):
     '''Usage as python module
 
     Depending on option value do:
@@ -52,7 +52,7 @@ def script_sample(option=""):
         2: if option is any other
     '''
     if option == '-h':
-        print(script_sample.__doc__)
+        print(util_sample.__doc__)
         return 0
     if option == '-v':
         print(ci_py_lib_version.CI_PY_LIB_VERSION)
@@ -60,11 +60,11 @@ def script_sample(option=""):
     if option == '-e':
         print('ERROR')
         return 1
-    print(script_sample.__doc__)
+    print(util_sample.__doc__)
     return 2
 
 def use_as_os_command():
-    ''' script_sample.py [COMMAND]
+    ''' util_sample.py [COMMAND]
 
     COMMAND
         -v, --version
@@ -95,7 +95,7 @@ def use_as_os_command():
     else:
         arg = '-e'
 
-    res = script_sample(arg)
+    res = util_sample(arg)
     sys.exit(res)
 
 if __name__ == '__main__':

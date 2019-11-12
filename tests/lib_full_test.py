@@ -29,9 +29,9 @@ def run_test(d, f):
 
 
 def run_all_tests():
-    os.environ['PYTHONPATH'] = '..'
+    os.environ['PYTHONPATH'] = '..;../../lib-utils'
 
-    print("\nPython scripts lib for CIS1 self testing started:\n")
+    print("\nCI Python scripts lib self testing started:\n")
     f = open("test_lib_full_test.py")
     if run_test(".", f) != 0:
         print("FATAL...........test_runner self check failed.\nExecution aborted\n\n")
