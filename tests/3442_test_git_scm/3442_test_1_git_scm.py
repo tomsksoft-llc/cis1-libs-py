@@ -23,19 +23,19 @@ if '__main__':
     status = True
     commit_id = str(create_test_repo())
     # Dir usage check
-    res = lib_test_runner.run(['../../cis1-libs/git_scm.py', 'TestRepo'], "Dir usage check ")
+    res = lib_test_runner.run(['../../lib-utils/git_scm.py', 'TestRepo'], "Dir usage check ")
     if res != 2:
         status = False
     # No 'ref' after '-b' option
-    res = lib_test_runner.run(['../../cis1-libs/git_scm.py', 'TestRepo', '-b', 'TestDir'], "Check with no 'ref' after '-b' option ")
+    res = lib_test_runner.run(['../../lib-utils/git_scm.py', 'TestRepo', '-b', 'TestDir'], "Check with no 'ref' after '-b' option ")
     if res != 2:
         status = False
     # No 'commit_id' after '-h' option
-    res = lib_test_runner.run(['../../cis1-libs/git_scm.py', 'TestRepo', '-h', 'TestDir'], "Check with no 'commit_id' after '-h' option ")
+    res = lib_test_runner.run(['../../lib-utils/git_scm.py', 'TestRepo', '-h', 'TestDir'], "Check with no 'commit_id' after '-h' option ")
     if res != 2:
         status = False
     # Parameters usage check
-    res = lib_test_runner.run(['../../cis1-libs/git_scm.py'], "Check without parameters ")
+    res = lib_test_runner.run(['../../lib-utils/git_scm.py'], "Check without parameters ")
     if res != 2:
         status = False
     if status:

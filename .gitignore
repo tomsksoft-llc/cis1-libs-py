@@ -1,8 +1,5 @@
 *
-
 !.gitignore
-
-!version.txt
 
 !docs/
 !docs/devguide.md
@@ -10,9 +7,11 @@
 
 !tests/
 !tests/*.py
+!tests/*
+!tests/*/*.py
 tests/lib_config.py
 
-!cis1-libs/
-!cis1-libs/*.py
-!cis1-libs/lib_config.py.sample
-!cis1-libs/requirements.txt
+!lib-utils/
+!lib-utils/*.py
+!lib-utils/lib_config.py.sample
+!lib-utils/requirements.txt

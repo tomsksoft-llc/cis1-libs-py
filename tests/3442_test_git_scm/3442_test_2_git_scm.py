@@ -25,7 +25,7 @@ def create_test_repo():
 
 if '__main__':
     commit_id = create_test_repo()
-    res = lib_test_runner.run(['../../cis1-libs/git_scm.py', 'TestRepo', '-h', commit_id, '-b', 'TestBranch', 'TestDir'], "Work check")
+    res = lib_test_runner.run(['../../lib-utils/git_scm.py', 'TestRepo', '-h', commit_id, '-b', 'TestBranch', 'TestDir'], "Work check")
     if res:
         lib_test_runner.fail()
     else:
