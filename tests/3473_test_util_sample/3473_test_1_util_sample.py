@@ -14,6 +14,6 @@ if __name__ == '__main__':
         res = 2
 
     if res == 0:
-        lib_test_runner.ok()
+        lib_test_runner.test_ok()
     else:
-        lib_test_runner.fail()
+        lib_test_runner.test_fail()

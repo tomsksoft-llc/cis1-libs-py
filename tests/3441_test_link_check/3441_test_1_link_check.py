@@ -24,8 +24,6 @@ if '__main__':
         status = False
     # Final check
     if status:
-        lib_test_runner.ok()
+        lib_test_runner.test_ok()
     else:
-        lib_test_runner.fall()
-
-
+        lib_test_runner.test_fall()
