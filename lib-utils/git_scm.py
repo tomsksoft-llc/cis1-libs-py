@@ -38,7 +38,7 @@ git_scm <repo> [branch]|[commit_hash] <dir>
 
 by default get (pull and checkout) HEAD of the master branch from repo
 
-bransh - get head of the specified branch
+branch - get head of the specified branch
 commit_hash - get the specified revision
 
 Return value:
@@ -53,7 +53,7 @@ if '__main__':
         if (sys.argv[1] == '--help') or (sys.argv[1] == '-h'):
             print('''
 
-git_scm.py - Dwnload git repository.
+git_scm.py - Download git repository.
 
 Usage: git_scm <repo> [branch]|[commit_hash] <dir>
 
