@@ -1,11 +1,12 @@
 import sys
 import subprocess
 import os
+import re
 
 
 def download_repository():
     FNULL = open(os.devnull, 'w')
-    if mod_b:
+    if branch:
         subprocess.run(['git', 'clone', repository_url, '-b', branch, repository_dir])
     else:
         subprocess.run(['git', 'clone', repository_url, repository_dir])
@@ -13,7 +14,7 @@ def download_repository():
     os.chdir(repository_dir)
     subprocess.run('git rev-parse --is-inside-work-tree', stdout=FNULL)
 
-    if not mod_h:
+    if not commit_id:
         process = subprocess.Popen(['git', 'rev-parse', '--verify', 'HEAD'], stdout=subprocess.PIPE, shell=False)
         output = process.communicate()
         main_commit_id = output[0].decode('utf8')
@@ -33,12 +34,12 @@ def usage():
     print("""
 usage:
 
-git_scm <repo> [-b branch]|[-h commit_hash] <dir>
+git_scm <repo> [branch]|[commit_hash] <dir>
 
 by default get (pull and checkout) HEAD of the master branch from repo
 
--b bransh - get head of the specified branch
--h commit_hash - get the specified revision
+bransh - get head of the specified branch
+commit_hash - get the specified revision
 
 Return value:
 
@@ -54,7 +55,7 @@ if '__main__':
 
 git_scm.py - Dwnload git repository.
 
-Usage: git_scm <repo> [-b branch]|[-h commit_hash] <dir>
+Usage: git_scm <repo> [branch]|[commit_hash] <dir>
 
 Description:
 Download git repository. By commit hash or/and branch name.
@@ -66,45 +67,22 @@ Download git repository. By commit hash or/and branch name.
         usage()
         sys.exit(2)
     try:
-        mod_h, mod_b, commit_id, branch = False, False, False, False
-        repository_dir = sys.argv[-1:]
-        repository_dir = repository_dir[0]
-
-        for arg in range(len(sys.argv)):
-            if sys.argv[arg] == '-h':
-                try:
-                    mod_h = True
-                    commit_id = sys.argv[arg + 1]
-                    sys.argv[arg + 1] = None
-                except:
-                    usage()
-                    raise Exception("fatal: after argument '-h' must be 'commit_id'")
-                if commit_id == repository_dir:
-                    usage()
-                    raise Exception("fatal: after argument '-h' must be 'commit_id'")
-            if sys.argv[arg] == '-b':
-                try:
-                    mod_b = True
-                    branch = sys.argv[arg + 1]
-                    sys.argv[arg + 1] = None
-                except:
-                    usage()
-                    raise Exception("fatal: after argument '-b' must be 'ref'")
-                if branch == repository_dir:
-                    usage()
-                    raise Exception("fatal: after argument '-b' must be 'ref'")
-
-
+        commit_id, branch = False, False
+        repository_dir = sys.argv[-1:][0]
         repository_url = sys.argv[1]
-        args = [
-            repository_url,
-            mod_h,
-            mod_b,
-            commit_id,
-            branch,
-        ]
-        if (repository_dir is None) or (repository_dir in args):
-            raise Exception("fatal:the last argument should be <dir>")
+        hash = '[0-9a-f]{5,40}'
+        if len(sys.argv) == 5:
+            branch = sys.argv[2]
+            commit_id = sys.argv[3]
+        elif len(sys.argv) == 4:
+            if re.match(hash, sys.argv[2]) is not None:
+                commit_id = sys.argv[2]
+            else:
+                branch = sys.argv[2]
+        elif (len(sys.argv) < 3) or (len(sys.argv) > 5):
+            usage()
+            raise Exception('Attribute error')
+
         if not os.path.isdir(repository_dir):
             download_repository()
         else:
