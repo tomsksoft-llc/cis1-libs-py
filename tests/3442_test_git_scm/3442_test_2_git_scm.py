@@ -1,6 +1,7 @@
 import subprocess
 import os
 import sys
+
 sys.path.append('../')
 import lib_test_runner
 
@@ -8,14 +9,15 @@ import lib_test_runner
 # Run program and return code
 
 def create_test_repo():
-    subprocess.run(['git', 'init', 'TestRepo'])
+    subprocess.run(['git', 'init', 'TestRepo'], check=False)
     os.chdir('TestRepo')
-    subprocess.run(['git', 'checkout', '-b', 'TestBranch'])
-    file = open('readme.txt', 'w')
-    file.close()
-    subprocess.run(['git', 'add', 'readme.txt'])
-    subprocess.run(['git', 'commit', '-m', 'TestCommit'])
-    process = subprocess.Popen(['git', 'rev-parse', '--verify', 'HEAD'], stdout=subprocess.PIPE, shell=False)
+    subprocess.run(['git', 'checkout', '-b', 'TestBranch'], check=False)
+    with open('readme.txt', 'w'):
+        pass
+    subprocess.run(['git', 'add', 'readme.txt'], check=False)
+    subprocess.run(['git', 'commit', '-m', 'TestCommit'], check=False)
+    process = subprocess.Popen(['git', 'rev-parse', '--verify', 'HEAD'],
+                               stdout=subprocess.PIPE, shell=False)
     output = process.communicate()
     commit_id = output[0].decode('utf8')
     commit_id = commit_id[:-2]
@@ -23,11 +25,16 @@ def create_test_repo():
     return commit_id
 
 
-if '__main__':
+def main():
     commit_id = create_test_repo()
-    res = lib_test_runner.run(['../../lib-utils/git_scm.py', 'TestRepo', 'TestBranch', commit_id, 'TestDir'], "Work check")
+    res = lib_test_runner.run(['../../lib-utils/git_scm.py',
+                               'TestRepo', 'TestBranch',
+                               commit_id, 'TestDir'], "Work check")
     if res:
-        lib_test_runner.fail()
+        lib_test_runner.test_fail()
     else:
-        lib_test_runner.ok()
+        lib_test_runner.test_ok()
 
+
+if __name__ == "__main__":
+    main()
