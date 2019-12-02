@@ -1,17 +1,52 @@
+##############################################################################
+#
+# Copyright (c) 2019 TomskSoft LLC
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# FILE: git_scm.py
+# Author: Felchuck Maxim
+#
+##############################################################################
+'''It is a  script for downloading git repositories.
+
+Downloading to the specified repository url and/or commit hash and/or the repository branch
+by default get (pull and checkout) HEAD of the master branch from repo
+
+'''
+
 import sys
 import subprocess
 import os
 import re
+import argparse
 
 
 def download_repository(branch, commit_id, repository_url, repository_dir):
     """Download git repository
-    By given repository branch, commit hash, repository dir
-    :param branch: short string branch name. May be specified, or may be False.
-    :param commit_id: shot or long string commit hash. May be specified, or may be False.
-    :param repository_url: Long string repository url.
-    :param repository_dir: Short string repository folder name.
-    :return: Nothing.
+
+    Args:
+        branch: short string branch name. May be specified, or may be False.
+        commit_id: shot or long string commit hash. May be specified, or may be False.
+        repository_url: Long string repository url.
+        repository_dir: Short string repository folder name.
+
     """
     null = open(os.devnull, 'w')
     if branch:
@@ -49,70 +84,43 @@ def download_repository(branch, commit_id, repository_url, repository_dir):
                    stdout=null, check=False)
 
 
-def usage():
-    print("""
-usage:
-
-git_scm <repo> [branch]|[commit_hash] <dir>
+def use_as_os_command():
+    ''' git_scm <repo> [args] <dir>
 
 by default get (pull and checkout) HEAD of the master branch from repo
-
-branch - get head of the specified branch
-commit_hash - get the specified revision
+args:
+    branch - get head of the specified branch
+    commit_hash - get the specified revision
 
 Return value:
 
 0 - if success
 non zero - if any error
-""")
+    '''
+    hash_pattern = '[0-9a-f]{5,40}'
+    parser = argparse.ArgumentParser(add_help=True)
+    parser.add_argument("repo")
+    parser.add_argument("args", nargs=argparse.REMAINDER)
+    parser.add_argument("dir")
+    parser.usage = use_as_os_command.__doc__
+    args = parser.parse_args()
+    commit_id, branch = False, False
 
-
-def main(args):
-    try:
-        if (args[1] == '--help') or (args[1] == '-h'):
-            print('''
-
-    git_scm.py - Download git repository.
-
-    Usage: git_scm <repo> [branch]|[commit_hash] <dir>
-
-    Description:
-    Download git repository. By commit hash or/and branch name.
-
-    ''')
-            sys.exit(0)
-    except Exception as err:
-        print(err)
-        usage()
-        sys.exit(2)
-    try:
-        commit_id, branch = False, False
-        repository_dir = args[-1:][0]
-        repository_url = args[1]
-        args_sum = len(args)
-        hash_pattern = '[0-9a-f]{5,40}'
-
-        if args_sum == 5:
-            branch = args[2]
-            commit_id = args[3]
-        elif args_sum == 4:
-            if re.match(hash_pattern, args[2]) is not None:
-                commit_id = args[2]
-            else:
-                branch = sys.argv[2]
-        elif (args_sum < 3) or (args_sum > 5):
-            usage()
-            raise Exception('Attribute error')
-
-        if not os.path.isdir(repository_dir):
-            download_repository(branch, commit_id, repository_url, repository_dir)
+    if len(args.args) == 2:
+        branch = args.args[0]
+        commit_id = args.args[1]
+    elif len(args.args) == 1:
+        if re.match(hash_pattern, args.args[0]) is not None:
+            commit_id = args.args[0]
         else:
-            raise Exception('fatal: path "{0}" already exists.'.format(repository_dir))
-
-    except Exception as err:
-        print(err)
+            branch = args.args[0]
+    else:
+        print('usage: ' + use_as_os_command.__doc__)
+        print('git_scm.py: arguments error')
         sys.exit(2)
+
+    download_repository(branch, commit_id, args.repo, args.dir)
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    use_as_os_command()
