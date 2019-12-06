@@ -105,7 +105,6 @@ non zero - if any error
     parser.usage = use_as_os_command.__doc__
     args = parser.parse_args()
     commit_id, branch = False, False
-    
     if len(args.args) == 2:
         branch = args.args[0]
         commit_id = args.args[1]
@@ -118,7 +117,6 @@ non zero - if any error
         print('usage: ' + use_as_os_command.__doc__)
         print('git_scm.py: arguments error')
         sys.exit(2)
-
     download_repository(branch, commit_id, args.repo, args.dir)
 
 
