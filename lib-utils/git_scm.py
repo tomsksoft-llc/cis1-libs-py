@@ -21,13 +21,11 @@
 # SOFTWARE.
 #
 # FILE: git_scm.py
-# Author: Felchuck Maxim
+# Authors: Maxim Felchuck
 #
 ##############################################################################
-'''It is a  script for downloading git repositories.
-
-Downloading to the specified repository (branch and commit hash optional).
-By default get (pull and checkout) HEAD of the master branch from repo.
+'''It is a script for downloading git repositories and checkout to specified
+branch or commit. By default checkout to master.
 
 '''
 
@@ -38,15 +36,17 @@ import re
 import argparse
 
 
-def download_repository(branch, commit_id, repository_url, repository_dir):
-    '''Download git repository
+def download_repository(repository_url, repository_dir, ref='master'):
+    '''Download git repository and checkout to specified ref
 
     Args:
-        branch: short string branch name. May be specified or may be not.
-        commit_id: short or long string. May be specified or may be not.
-        repository_url: Long string repository url.
-        repository_dir: short string folder name.
+        repository_url: Long string repository url
+        repository_dir: short string folder name
+        ref_name: branch name or commit hash (by default = master)
 
+    Returns:
+       0: on success
+      -1: if fail
     '''
     null = open(os.devnull, 'w')
     if branch:
@@ -85,17 +85,15 @@ def download_repository(branch, commit_id, repository_url, repository_dir):
 
 
 def use_as_os_command():
-    ''' git_scm <repo> [args] <dir>
+    ''' git_scm.py <repo> <dir> [ref]
 
-by default get (pull and checkout) HEAD of the master branch from repo
-args:
-    branch - get head of the specified branch
-    commit_hash - get the specified revision
+    repo - URI to git repository
+    dir - directory where repo will be downloaded
+    ref - branch name or commit hash, if not specified "master" will be used
 
-Return value:
-
-0 - if success
-non zero - if any error
+    Return value:
+        0 - on success
+        non zero - if any error
     '''
     hash_pattern = '[0-9a-f]{5,40}'
     parser = argparse.ArgumentParser(add_help=True)
