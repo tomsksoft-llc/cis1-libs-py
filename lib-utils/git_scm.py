@@ -26,8 +26,8 @@
 ##############################################################################
 '''It is a  script for downloading git repositories.
 
-Downloading to the specified repository url and/or commit hash and/or the repository branch
-by default get (pull and checkout) HEAD of the master branch from repo
+Downloading to the specified repository (branch and commit hash optional).
+By default get (pull and checkout) HEAD of the master branch from repo.
 
 '''
 
@@ -39,15 +39,15 @@ import argparse
 
 
 def download_repository(branch, commit_id, repository_url, repository_dir):
-    """Download git repository
+    '''Download git repository
 
     Args:
-        branch: short string branch name. May be specified, or may be False.
-        commit_id: shot or long string commit hash. May be specified, or may be False.
+        branch: short string branch name. May be specified or may be not.
+        commit_id: short or long string. May be specified or may be not.
         repository_url: Long string repository url.
-        repository_dir: Short string repository folder name.
+        repository_dir: short string folder name.
 
-    """
+    '''
     null = open(os.devnull, 'w')
     if branch:
         subprocess.run(['git', 'clone', repository_url,
