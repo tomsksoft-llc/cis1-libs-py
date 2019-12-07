@@ -32,11 +32,10 @@ branch or commit. By default checkout to master.
 import sys
 import subprocess
 import os
-import re
 import argparse
 
 
-def download_repository(repository_url, repository_dir, ref='master'):
+def download_repository(repository_url, repository_dir, ref):
     '''Download git repository and checkout to specified ref
 
     Args:
@@ -48,40 +47,35 @@ def download_repository(repository_url, repository_dir, ref='master'):
        0: on success
       -1: if fail
     '''
+
     null = open(os.devnull, 'w')
-    if branch:
-        subprocess.run(['git', 'clone', repository_url,
-                        '-b', branch, repository_dir], check=False)
-    else:
+    try:
         subprocess.run(['git', 'clone', repository_url,
                         repository_dir], check=False)
+        os.chdir(repository_dir)
+        subprocess.run(['git', 'checkout', ref], check=False)
 
-    os.chdir(repository_dir)
-    subprocess.run('git rev-parse --is-inside-work-tree',
-                   stdout=null, check=False)
+        subprocess.run(['git', 'reset', '--hard'],
+                       stdout=null, check=False)
 
-    if not commit_id:
-        process = subprocess.Popen(['git', 'rev-parse', '--verify', 'HEAD'],
-                                   stdout=subprocess.PIPE, shell=False)
-        output = process.communicate()
-        main_commit_id = output[0].decode('utf8')
-        main_commit_id = main_commit_id[:-2]
-    else:
-        main_commit_id = commit_id
+        subprocess.run(['git', 'clean', '-fdx'],
+                       stdout=null, check=False)
 
-    subprocess.run(['git', 'reset', '--hard'],
-                   stdout=null, check=False)
-    subprocess.run(['git', 'clean', '-fdx'],
-                   stdout=null, check=False)
-    subprocess.run(['git', 'fetch', '--tags', '--progress',
-                    repository_url, '+refs/heads/*:refs/remotes/origin/*'],
-                   stdout=null, check=False)
-    subprocess.run(['git', 'rev-parse', main_commit_id],
-                   stdout=null, check=False)
-    subprocess.run(['git', 'config', 'core.sparsecheckout'],
-                   stdout=null, check=False)
-    subprocess.run(['git', 'checkout', '-f', main_commit_id],
-                   stdout=null, check=False)
+        subprocess.run(['git', 'fetch', '--tags', '--progress',
+                        repository_url, '+refs/heads/*:refs/remotes/origin/*'],
+                       stdout=null, check=False)
+
+        subprocess.run(['git', 'config', 'core.sparsecheckout'],
+                       stdout=null, check=False)
+
+        subprocess.run(['git', 'checkout', '-f', ref],
+                       stdout=null, check=False)
+
+    except Exception as error:
+        print('usage: ' + use_as_os_command.__doc__)
+        print(error)
+        return -1
+    return 0
 
 
 def use_as_os_command():
@@ -95,27 +89,19 @@ def use_as_os_command():
         0 - on success
         non zero - if any error
     '''
-    hash_pattern = '[0-9a-f]{5,40}'
     parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument("repo")
-    parser.add_argument("args", nargs=argparse.REMAINDER)
     parser.add_argument("dir")
+    parser.add_argument("ref", nargs='?', default='master')
     parser.usage = use_as_os_command.__doc__
     args = parser.parse_args()
-    commit_id, branch = False, False
-    if len(args.args) == 2:
-        branch = args.args[0]
-        commit_id = args.args[1]
-    elif len(args.args) == 1:
-        if re.match(hash_pattern, args.args[0]) is not None:
-            commit_id = args.args[0]
-        else:
-            branch = args.args[0]
-    elif len(args.args) > 2:
+    if os.path.exists(args.dir):
         print('usage: ' + use_as_os_command.__doc__)
-        print('git_scm.py: arguments error')
+        print('fatal:  path "{0}" already exists.'.format(args.dir))
         sys.exit(2)
-    download_repository(branch, commit_id, args.repo, args.dir)
+    res = download_repository(args.repo, args.dir, args.ref)
+    print(res)
+    sys.exit(res)
 
 
 if __name__ == '__main__':
