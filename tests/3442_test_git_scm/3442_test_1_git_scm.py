@@ -5,15 +5,27 @@ import lib_test_runner
 
 
 def main():
+
     res = 0
-    # --help usage check
+
+    # invalid option argument
+    if lib_test_runner.run(["../../lib-utils/git_scm.py",
+                            "--heRRRprp"], "must be ERROR ") == 0:
+        res = 2
+
+    # --help option
     if lib_test_runner.run(["../../lib-utils/git_scm.py",
                             "--help"], "must be OK ") != 0:
         res = 2
 
-        # Parameters usage check
+    # One invalid arg
     if lib_test_runner.run(["../../lib-utils/git_scm.py",
-                            "TestDir"], "must be ERROR ") != 2:
+                            "blaaaa"], "must be ERROR ") == 0:
+        res = 2
+
+    # Both invalid args
+    if lib_test_runner.run(["../../lib-utils/git_scm.py",
+                            "blaaaa", "few"], "must be ERROR ") == 0:
         res = 2
 
     if res == 0:

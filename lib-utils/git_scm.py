@@ -21,7 +21,7 @@
 # SOFTWARE.
 #
 # FILE: git_scm.py
-# Authors: Maxim Felchuck
+# Authors: Maxim Felchuck, Ilya Bezkhodarnov
 #
 ##############################################################################
 '''It is a script for downloading git repositories and checkout to specified
@@ -44,35 +44,15 @@ def download_repository(repository_url, repository_dir, ref):
         ref_name: branch name or commit hash (by default = master)
 
     Returns:
-       0: on success
-      -1: if fail
+        0: on success
+       -1: if fail
     '''
+    subprocess.run(['git', 'clone', repository_url,
+                    repository_dir], check=True)
+    os.chdir(repository_dir)
 
-    null = open(os.devnull, 'w')
-    try:
-        subprocess.run(['git', 'clone', repository_url,
-                        repository_dir], check=False)
-        os.chdir(repository_dir)
-        subprocess.run(['git', 'checkout', ref], check=False)
+    subprocess.run(['git', 'checkout', ref], check=True)
 
-        subprocess.run(['git', 'reset', '--hard'],
-                       stdout=null, check=False)
-
-        subprocess.run(['git', 'clean', '-fdx'],
-                       stdout=null, check=False)
-
-        subprocess.run(['git', 'fetch', '--tags', '--progress',
-                        repository_url, '+refs/heads/*:refs/remotes/origin/*'],
-                       stdout=null, check=False)
-
-        subprocess.run(['git', 'config', 'core.sparsecheckout'],
-                       stdout=null, check=False)
-
-        subprocess.run(['git', 'checkout', '-f', ref],
-                       stdout=null, check=False)
-    except:
-        print('usage: ' + use_as_os_command.__doc__)
-        return -1
     return 0
 
 
@@ -87,18 +67,32 @@ def use_as_os_command():
         0 - on success
         non zero - if any error
     '''
-    parser = argparse.ArgumentParser(add_help=True, usage='usage:  git_scm.py <repo> <dir> [ref]')
-    parser.add_argument("repo", help='- URI to git repository')
-    parser.add_argument("dir", help='- directory where repo will be downloaded')
-    parser.add_argument("ref", nargs='?', default='master',
-                        help='- branch name or commit hash, if not specified "master" will be used')
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('-h', '--help', action='store_true')
+    parser.add_argument("repo", nargs="?")
+    parser.add_argument("dir", nargs="?")
+    parser.add_argument("ref", nargs='?', default='master')
+    parser.usage = use_as_os_command.__doc__
+
     args = parser.parse_args()
-    if os.path.exists(args.dir):
-        print('usage: ' + use_as_os_command.__doc__)
-        print('fatal:  path "{0}" already exists.'.format(args.dir))
+
+
+    if args.help:
+        print('usage: '+use_as_os_command.__doc__)
+        sys.exit(0)
+
+    if args.repo is None:
+        print('''<repo> isn't specified''')
+        print('usage: '+use_as_os_command.__doc__)
         sys.exit(2)
+
+    if args.dir is None:
+        print('''<dir> isn't specified''')
+        print('usage: '+use_as_os_command.__doc__)
+        sys.exit(2)
+
     res = download_repository(args.repo, args.dir, args.ref)
-    sys.exit(res)
+    return res
 
 
 if __name__ == '__main__':

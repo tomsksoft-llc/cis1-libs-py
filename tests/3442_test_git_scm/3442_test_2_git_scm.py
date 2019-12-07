@@ -12,7 +12,8 @@ def main():
 
     _res = 0
     if lib_test_runner.run(['../../lib-utils/git_scm.py',
-                            'https://github.com/tomsksoft-llc/ci-py-lib.git', 'TestDir'], "Work check") != 0:
+                            'https://github.com/tomsksoft-llc/ci-py-lib.git', 'TestDir'], 
+                            "Check normal work") != 0:
         _res = 2
 
     if _res == 0:
