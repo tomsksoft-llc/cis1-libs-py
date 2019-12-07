@@ -70,10 +70,8 @@ def download_repository(repository_url, repository_dir, ref):
 
         subprocess.run(['git', 'checkout', '-f', ref],
                        stdout=null, check=False)
-
-    except Exception as error:
+    except:
         print('usage: ' + use_as_os_command.__doc__)
-        print(error)
         return -1
     return 0
 
@@ -89,18 +87,17 @@ def use_as_os_command():
         0 - on success
         non zero - if any error
     '''
-    parser = argparse.ArgumentParser(add_help=True)
-    parser.add_argument("repo")
-    parser.add_argument("dir")
-    parser.add_argument("ref", nargs='?', default='master')
-    parser.usage = use_as_os_command.__doc__
+    parser = argparse.ArgumentParser(add_help=True, usage='usage:  git_scm.py <repo> <dir> [ref]')
+    parser.add_argument("repo", help='- URI to git repository')
+    parser.add_argument("dir", help='- directory where repo will be downloaded')
+    parser.add_argument("ref", nargs='?', default='master',
+                        help='- branch name or commit hash, if not specified "master" will be used')
     args = parser.parse_args()
     if os.path.exists(args.dir):
         print('usage: ' + use_as_os_command.__doc__)
         print('fatal:  path "{0}" already exists.'.format(args.dir))
         sys.exit(2)
     res = download_repository(args.repo, args.dir, args.ref)
-    print(res)
     sys.exit(res)
 
 
