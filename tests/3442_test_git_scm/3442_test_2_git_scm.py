@@ -8,32 +8,17 @@ import lib_test_runner
 
 # Run program and return code
 
-def create_test_repo():
-    subprocess.run(['git', 'init', 'TestRepo'], check=False)
-    os.chdir('TestRepo')
-    subprocess.run(['git', 'checkout', '-b', 'TestBranch'], check=False)
-    with open('readme.txt', 'w'):
-        pass
-    subprocess.run(['git', 'add', 'readme.txt'], check=False)
-    subprocess.run(['git', 'commit', '-m', 'TestCommit'], check=False)
-    process = subprocess.Popen(['git', 'rev-parse', '--verify', 'HEAD'],
-                               stdout=subprocess.PIPE, shell=False)
-    output = process.communicate()
-    commit_id = output[0].decode('utf8')
-    commit_id = commit_id[:-2]
-    os.chdir('..')
-    return commit_id
-
-
 def main():
-    commit_id = create_test_repo()
-    res = lib_test_runner.run(['../../lib-utils/git_scm.py',
-                               'TestRepo', 'TestBranch',
-                               commit_id, 'TestDir'], "Work check")
-    if res:
-        lib_test_runner.test_fail()
-    else:
+
+    _res = 0
+    if lib_test_runner.run(['../../lib-utils/git_scm.py',
+                            'https://github.com/tomsksoft-llc/ci-py-lib.git', 'TestDir'], "Work check") != 0:
+        _res = 2
+
+    if _res == 0:
         lib_test_runner.test_ok()
+    else:
+        lib_test_runner.test_fail()
 
 
 if __name__ == "__main__":
