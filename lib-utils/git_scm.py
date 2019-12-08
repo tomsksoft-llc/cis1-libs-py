@@ -47,11 +47,15 @@ def download_repository(repository_url, repository_dir, ref):
         0: on success
        -1: if fail
     '''
-    subprocess.run(['git', 'clone', repository_url,
-                    repository_dir], check=True)
+    res = subprocess.run(['git', 'clone', repository_url,
+                          repository_dir], check=True).returncode
+    if res != 0:
+        return -1
     os.chdir(repository_dir)
 
-    subprocess.run(['git', 'checkout', ref], check=True)
+    res = subprocess.run(['git', 'checkout', ref], check=True).returncode
+    if res != 0:
+        return -1
 
     return 0
 
@@ -76,19 +80,22 @@ def use_as_os_command():
 
     args = parser.parse_args()
 
-
     if args.help:
-        print('usage: '+use_as_os_command.__doc__)
+        print('usage: ' + use_as_os_command.__doc__)
         sys.exit(0)
 
     if args.repo is None:
         print('''<repo> isn't specified''')
-        print('usage: '+use_as_os_command.__doc__)
+        print('usage: ' + use_as_os_command.__doc__)
         sys.exit(2)
 
     if args.dir is None:
         print('''<dir> isn't specified''')
-        print('usage: '+use_as_os_command.__doc__)
+        print('usage: ' + use_as_os_command.__doc__)
+        sys.exit(2)
+    if os.path.exists(args.dir):
+        print('''path "{0}" already exists'''.format(args.dir))
+        print('usage: ' + use_as_os_command.__doc__)
         sys.exit(2)
 
     res = download_repository(args.repo, args.dir, args.ref)
