@@ -1,35 +1,36 @@
 # ci-py-lib
-CI Python utilities library for CI purpose
 
-Эта библиотека содержит набор Python утилит, предназначенных для использования в системах Continuous Integration.
+CI Python utilities library for CI purposes
 
-## Использование библиотеки
+This library contains a set of Python utilities designed for Continuous Integration systems.
 
-Каждая утилита - это отдельный файл .py. Он может быть использован двумя способами:
+## Library usage
 
-1) как команда ОС, при этом параметры передаются через командную строку, код возврата 0 - означает успешное выполнение, не 0 - ошибку. В процессе работы утилита должна выводить в stdout/stderr информацию о ходе выполнения и диагностику ошибок, достаточную для отладки программы, которая использует данную утилиту. Функция, которая используется для запуска утилиты в этом режиме должна называться use_as_os_command, внутри себя разбирать командную строку и выполнять нужные действия;
+Each utility is a separate .py file. Each of them can be used in two ways:
 
-2) как подключаемый модуль python, имя функции для вызова совпадает с именем скрипта, но могут быть и другие функции, которые должны быть документированы внутри самого модуля (см. ниже). Основная функция должна возвращать 0 в случае успеха, не 0 при ошибке. Функции, находящиеся внутри утилиты, но не предназначенные для вызова извне, должны оставаться локальными. Диагностика ошибочных ситуаций должна быть достаточной, чтобы можно было диагностировать ошибки по коду возврата основной функции (и дополнительных функций если это необходимо)
+1. as an OS command, in which case the parameters are transmitted through the command line, the return code 0 means successful execution, not 0 - an error. The Stdout/stderr must be updated with information on the status of implementation and error diagnostics sufficient to debug the program that uses this utility. The function that is used to run the utility in this mode must be called use_as_os_command; it must parse the command line within itself and perform the necessary actions;
 
-Все утилиты находятся в каталоге lib-utils репозитария. Для их использования достаточно забрать ветку master, и настроить конфигурацию в файле `lib-utils/lib_config.py`, пример которого можно взять из `lib-utils/lib_config.py`.sample.
+2. as a python module, the call function name matches the name of the script, but there may be other functions, and, in such case, they should be documented inside the module itself (see below). The key function should return 0 if successful, not 0 – in case of error. Functions located inside the utility, but not intended for external calls, must remain local. Diagnosis of effort conditions must be informative enough to enable error diagnostics based on the key function return code (and additional functions if necessary)
 
-Документация на утилиту находится внутри нее, и может быть получена как в командной строке, так и с помощью Pydoc:
+All utilities are stored in the lib-utils repository directory. In order to use them, simply clone the master branch, and set up the configuration in the `lib-utils/lib_config.py` file, an example of which can be found in `lib-utils/lib_config.py.sample`.
 
-Для получения информации о том, как использовать утилиту из командной строки:
+The utility documentation is stored in it, and can be obtained both from the command line and using Pydoc:
+
+For information on how to use the utility from the command line:
 ```console
 $ python <util_name>.py -h | --help
 ```
 
-Полная документация на утилиту:
+Full utility documentation:
 ```
 $ python pydoc.py  ./<util_name>.py
 ```
 
-Документация на все утилиты находится в файле [lib-utils/py-lib-guide.html](lib-utils/py-lib-guide.html).
+The documentation for all utilities is stored in the [lib-utils/py-lib-guide.html](lib-utils/py-lib-guide.html).
 
-## Дополнительная информация
+## Additional Information
 
-* Каждая утилита тестируется в момент сборки с помощью тестовых скриптов, которые находятся в данном репозитарии, но частью самих утилит не являются.
-* Библиотека поддерживает обратную совместимость как минимум внутри мажорной версии.
-* Библиотека является кросплафторменной.
-* Инструкция для разработчиков библиотеки находится в файле [docs/devguide.md](docs/devguide.md) данного репозитария.
+• Each utility is tested while building using test scripts stored in this repository. The scripts are not part of the utilities.
+• The library supports backward compatibility at least within a major version.
+• The library is cross-platform.
+• Instructions for library developers are located in the [docs/devguide.md](docs/devguide.md) file of this repository.
