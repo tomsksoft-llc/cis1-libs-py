@@ -1,7 +1,7 @@
 # Python Utility Library Development Guidelines for Continuous Integration Systems
 
 Перед прочтением этого файла изучите 
-Before proceeding with this file, first study [README.md](README.md)
+Before proceeding with this file, first study [/README.md](/README.md)
 
 The utilities source code must comply with http://google.github.io/styleguide/pyguide.html
 
