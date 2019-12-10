@@ -1,137 +1,131 @@
-# Правила разработки библиотеки утилит на Python для использования в системах Continuous Integration
+# Python Utility Library Development Guidelines for Continuous Integration Systems
 
-Перед прочтением этого файла изучите [docs/readme.md](docs/readme.md)
+Перед прочтением этого файла изучите 
+Before proceeding with this file, first study [README.md](README.md)
 
-Исходный код утилит должен соответствовать http://google.github.io/styleguide/pyguide.html
+The utilities source code must comply with http://google.github.io/styleguide/pyguide.html
 
-В библиотеке есть пример утилиты: util_sample.py, который можно использовать как шаблон. Если вы обнаружили несоответствие шаблонной утилиты и данной документации, пожалуйста, сообщайте нам.
+The library contains a sample utility – util_sample.py, which can be used as a template. Please let us know If you find discrepancies between the sample utility and this documentation.
 
-## Структура репозитария
+## Repository structure
 
-`lib-utils` - здесь находятся все файлы утилит и их "запчасти". Все, что есть в этом каталоге и есть библиотека утилит. Для ее использования достаточно просто скопировать этот каталог со всем содержимым.
+`lib-utils` - contains all the utility files and their corresponding “spare components”. Everything in this directory comprises a utility library. To use it, simply copy this directory with all of its contents.
 
-`tests` - здесь находятся скрипты тестов на каждую утилиту, и скрипты, которые запускают эти тесты и формируют отчет об их выполнении. Этот каталог служебный, он не является частью утилит самой библиотеки.
+`tests` - stores the test scripts for each utility, and scripts that run these tests and generate a progress report. This is a service directory, which is not part of the library utilities.
 
-`docs` - документация для разработчиков библиотеки утилит.
+`docs` - stores the documentation for developers of utility library.
 
-Другие каталоги и файлы служебные и не используются утилитами.
+Other directories and service files are not used by utilities.
 
 
-## Документирование утилит
+## Utility Documentation
 
-Каждая утилита и все ее дополнительные .py файлы должны быть документированы следующим образом:
+Each utility and all its additional .py files must be documented as follows:
 
-1. В начале файла записывается лицензия (это должна быть копия лицензии библиотеки).
-2. Внутри текста лицензии в самом ее конце указывается автор утилиты по примеру утилиты `util_sample.py`.
-3. Сразу за текстом лицензии следует описание утилиты в формате docstring (пример можно посмотреть в `util_sample.py`).
-4. Все экспортируемые функции документируются в соответствие с CodeStyle (см. выше).
-5. При запуске утилиты из командной строки с ключами -h или --help в stdout должна выводиться docstring функции use_as_os_command по использованию утилиты в качестве команды ОС.
+1. The beginning of the file should contain the license information (this should be a copy of the library license).
+2. The license information must list the author of the utility at the very end as shown in following example – util_sample.py.
+3. The text of the license should be immediately followed by a description of the utility in the docstring format (see util_sample.py for reference).
+4. All exported functions must be documented in compliance with CodeStyle (see above).
+5. When starting the utility from the command line using the -h or --help command line options, the stdout must display the docstring of the use_as_os_command function that allows to use the utility as an OS command
 
-Уточнение: скрипты тестов утилиты не являются ее частью, и под указанные выше требования не попадают.
+Note: The utility test scripts are not part of the utility; and do not fall within the above requirements.
 
-## Обратная совместимость
+## Backward compatibility
 
-Единожды попав в библиотеку скрипт не имеет права менять свой интерфейс и поведение. 
-Для достижения этого существуют такие правила:
+Once in the library, the script is no longer allowed to change its interface and behavior. This is achieved by means of the following rules:
+- each script is accompanied with the corresponding autotests (see below how they are designed and what they do)
+- after autotests are added, they are never changed again, and they are run during the library building
+Thus, any changes in the utility that trigger errors in the autotests are rejected.
 
-- вместе со скриптом заливаются автотесты на него (см. дальше как они устроены и что они делают)
-- после заливки этих автотестов они больше никогда не изменяются, а успешность их прохождения проверяется при сборке библиотеки
-
-Таким образом, если какие-либо изменения в утилите повлекли ошибку в автотестах, то эти изменения отвергаются.
-
-При добавлении каждой новой утилиты, вместе с ней добавляется каталог с тестами, который начинается с уникального для всей библиотеки номера:
+When a new utility is added, a directory with tests is added along with it, which starts with a unique number for the entire library:
 
 `tests/NNNN_test_<utilit yname>`
 
-Где NNNN - тот самый уникальный номер. В каталоге располагаются скрипты тестов, которые именуются следующим образом:
+Where NNNN is the unique number. The directory contains the test scripts, which are named as follows:
 
 `NNNN_test_N_<utlity name>.py`
  
-Где N - порядковый номер теста.
+Where N is the test ordinal number.
  
-Скрипт теста при успехе должен завершаться с кодом возврата 0. В случае ошибки код возврата НЕ 0.
+If successful, the test script should complete with return code 0. In case of error, the return code is NOT 0.
  
-Для запуска всех тестов используется скрипт:
+Use the following script to run all tests:
 
 `tests/lib_full_test.py`
 
-Рабочим каталогом для их выполнения является каталог tests.
+The `tests` directory acts as a process directory intended for their implementation.
 
-При написании тестов обязательно использование следующих правил:
-  
-1. В каждом файле должен быть только один тест, если только обратное не продиктовано логикой самого теста
-2. Задача теста - сформировать условия для запуска скрипта и выполнить его вот таким образом:
+When creating tests, you must use the following rules:
+1. Each file should have only one test, unless the test logic dictates the opposite
+2. The test is intended to ensure the script is run and executed as follows:
  
 ```python
 import lib_test_runner
 res = lib_test_runner.run(['../../lib-utils/<script name>', 'arg1',.. ], "Message for tests report")
 ```
  
-3. Завершение скрипта следует делать c помощью следующих вызовов:
-- в случае успешного заверения теста:
+3. The script should be completed using the following calls:
+- in case the test is passed:
 
 ```python
 lib_test_runner.test_ok()
 ```
 
-- в случае ошибки:
+• in case of error:
 
 ```python
 lib_test_runner.test_fail()
 ```
 
-Для каждой утилиты должны быть написаны тесты, которые выполняют как минимум следующие проверки:
+Each utility must have tests that perform at least the following checks:
+1. adequate response of the utility to the format of the command line parameters;
+2. correct operation of the utility under adequate conditions;
+3. adequate response of the utility to the function input parameters when it is used as a Python module.
 
-1) соответствие реакции утилиты на формат параметров командной строки;
-2) правильную работу утилиты в адекватных условиях;
-3) правильную реакцию утилиты на входные параметры функции при использовании ее в виде Python модуля.
+## Local configuration
 
-## Локальная конфигурация
-
-Для работы библиотеки в конкретной инсталляции могут потребоваться локальные настройки. Все эти настройки должны находится в файле 
+The library may require local settings in order to work in a specific installation. All these settings should be kept in the following file:
 
 `lib_config.py`
  
-который находится вне репозитария. В качестве шаблона для этого файла в репозитарии находится файл
+which is stored outside the repository. The sample of this file stored in the repository:
 
 `lib-utils/lib_config.py.sample`
 
-Для запуска тестов файл `lib_config.py` создается в каталоге tests.
+For tests to run, the `lib_config.py` file is created in the `tests` directory.
  
-## Правила работы с репозитарием библиотеки
+## Library Repository Rules
  
-Для разработки каждой новой утилиты заводится ветка с именем:
+A branch with the following name format is created for each new utility:
  
 `NNNN_<utility name>`
  
-NNNN - уникальный номер внутри всей библиотеки.
-  
-Вместе с самой утилитой разрабатываются скрипты тестов для нее. Как формируется имя каталога скриптов и их имена описано выше.
+NNNN is a unique number within the entire library.
 
-Для приемки утилиты нужно:
-1) забрать в ее ветку самый последний мастер;
-2) привести исходный код, в соответствие с требованиями, указанными выше;
-3) проверить, что выполняются все тесты всей библиотеки включая и новую утилиту;
-4) сгенерировать документацию с помощью _TODO_;
-5) после этого запросить мерж-реквест.
+The utility test scripts are developed along with it. The naming rules for script directory and scripts are described above.
 
-Перед мержем ветки в мастер выполняется сборка библиотеки, ревью кода, проверка выполнения требований данной документации, проверка работы и ее соответствие документации на утилиту.
-Если все условия и проверки выполнены успешно, то происходит мерж в мастер.
- 
-## Правила использования сторонних библиотек
+Requirements to accept the utility:
+1. Merge the latest master into the branch;
+2. Bring the source code in line with the requirements listed above;
+3. Check that all library tests are passed (this also applies to the new utility);
+4. Generate the documentation using _TBD_;
+5. Then submit a merge request.
 
-Сторонние библиотеки можно использовать. Лицензия на сторонние библиотеки должна разрешать их бесплатное использование в любых вариантах, включая коммерческое. Все пункты лицензии сторонней библиотеки должны быть соблюдены. Все сторонние библиотеки должны быть перечислены в файле:
+Before merging the branches into master, the following actions are performed: library build, code review, verification of the compliance to this documentation, utility functional test, and utility compliance with the utility documentation. If all conditions and checks are completed and passed successfully, the branches are merged into the master.
+
+## Rules for using third-party libraries
+
+Third-party libraries are allowed. The license for third-party libraries should allow their unrestricted commercial and non-commercial use. All third-party license terms must be observed. All third-party libraries should be listed in the following file:
 
 `lib-utils/requirements.txt`
  
-Формат файла должен удовлетворять этим требованиям:
+The file format must comply with the following requirements:
  
  https://pip.pypa.io/en/stable/reference/pip_install/#requirements-file-format
 
-## Сборка библиотеки
+## Library building
 
-При сборке (подготовке пакета для распространения) выполняются следующие дейсвтия:
-
-1) прогоняются все тесты на ОС Windows, Linus, MAC OS/X, если хотя бы один из них не проходит, сборка считается неуспешной;
-2) генерируется и проверяется в ручную полная документация в формате HTML в docs/ci-py-lib-reference.html;
-3) собирается инсталляционный пакет.
+The building process (preparation of the package for distribution) comprises the following actions:
+1. All tests are run on Windows, Linux, macOS/X; if at least one of them fails, the build is considered unsuccessful;
+2. The full documentation in the HTML format is generated and checked manually in docs/ci-py-lib-reference.html;
+3. The installation package is built.
