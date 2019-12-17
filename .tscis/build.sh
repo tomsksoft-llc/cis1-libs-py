@@ -11,7 +11,7 @@ python3 -m pip install --user -r lib-utils/requirements.txt
 
 cd tests
 
-sed -i'' -e 's/PYTHON2 = \x27python\x27/PYTHON2 = \x27python2\x27/g; s/PYTHON3 = \x27python2\x27/PYTHON3 = \x27python3\x27/g' lib_config.py
+sed -i'' -e 's/PYTHON2 = \x27python\x27/PYTHON2 = \x27python2\x27/g; s/PYTHON3 = \x27python\x27/PYTHON3 = \x27python3\x27/g' lib_config.py
 
 python3 lib_full_test.py
 
