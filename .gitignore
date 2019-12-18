@@ -15,3 +15,7 @@ tests/lib_config.py
 !lib-utils/*.py
 !lib-utils/lib_config.py.sample
 !lib-utils/requirements.txt
+
+!.tscis
+!.tscis/*
+!.tscis/**
