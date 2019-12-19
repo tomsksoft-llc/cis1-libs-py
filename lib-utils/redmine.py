@@ -52,7 +52,7 @@ def get_status_identifier_by_name(status_name):
     except URLError as e:
         print('We failed to reach a server.')
         print('Reason: ', e.reason)
-        return
+        return None
     else:
         data = json.loads(content)
     try:
@@ -69,8 +69,8 @@ def update_status_issue(issue, status_id, notes):
     notes - Comments about the update.
 
     Return value:
-       200 - on success
-       non 200 - HTTP protocol errors are valid responses, with a status code.
+       0 - on success
+       non zero - HTTP protocol errors are valid responses, with a status code.
     """
     values = '''{ "issue": { "status_id": "%s", "notes": "%s" } }''' % (status_id, notes)
     req = Request('%s/issues/%s.json' % (redmine_host_project, issue), data=values.encode(), method='PUT')
@@ -79,16 +79,14 @@ def update_status_issue(issue, status_id, notes):
     try:
         with urlopen(req) as f:
             pass
+        return 0 if f.code == 200 else f.code
     except HTTPError as e:
         print('The server couldn\'t fulfill the request.')
         print('Error code: ', e.code)
-        return e.code
     except URLError as e:
         print('We failed to reach a server.')
         print('Reason: ', e.reason)
-        return e.code
-    else:
-        return f.code
+    return -1
 
 
 def use_as_os_command():
@@ -135,6 +133,7 @@ def use_as_os_command():
 
 
 if __name__ == '__main__':
-    redmine_host_project = 'http://redmine.tomsksoft/tomsksoft'
+    redmine_host_project = os.environ["REDMINE_HOST_PROJECT"]
     redmine_access_key = os.environ["REDMINE_API_ACCESS_KEY"]
+
     use_as_os_command()
