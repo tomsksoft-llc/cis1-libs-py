@@ -37,22 +37,6 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
 
-def _service_host_project():
-    # Returns the host project passed through the system variable,
-    # if it is absent, returns the default value.
-    if 'REDMINE_HOST_PROJECT' in os.environ:
-        return os.environ["REDMINE_HOST_PROJECT"]
-    return "https://"
-
-
-def _service_access_key():
-    # Returns the access key passed through the system variable,
-    # if it is absent, returns the empty value.
-    if 'REDMINE_API_ACCESS_KEY' in os.environ:
-        return os.environ["REDMINE_API_ACCESS_KEY"]
-    return ""
-
-
 def get_status_identifier_by_name(status_name):
     """Returns the status ID for the specified name used by redmine the project.
 
@@ -87,7 +71,7 @@ def update_status_issue(issue, status_id, notes):
 
     Return value:
        0 - on success
-       non zero - HTTP protocol errors are valid responses, with a status code.
+       non zero - HTTP protocol errors are valid responses.
     """
     values = '''{ "issue": { "status_id": "%s", "notes": "%s" } }''' % (status_id, notes)
     req = Request(
@@ -104,7 +88,22 @@ def update_status_issue(issue, status_id, notes):
     except URLError as err:
         print('We failed to reach a server.')
         print('Reason: ', err.reason)
-    return -1
+
+
+def _service_host_project():
+    # Returns the host project passed through the system variable,
+    # if it is absent, returns the default value.
+    if 'REDMINE_HOST_PROJECT' in os.environ:
+        return os.environ["REDMINE_HOST_PROJECT"]
+    return "https://"
+
+
+def _service_access_key():
+    # Returns the access key passed through the system variable,
+    # if it is absent, returns the empty value.
+    if 'REDMINE_API_ACCESS_KEY' in os.environ:
+        return os.environ["REDMINE_API_ACCESS_KEY"]
+    return ""
 
 
 def use_as_os_command():
