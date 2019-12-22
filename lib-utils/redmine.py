@@ -38,44 +38,76 @@ from urllib.error import URLError, HTTPError
 
 
 def get_status_identifier_by_name(status_name):
-    req = Request('%s/issue_statuses.json' % redmine_host_project)
-    req.add_header('X-Redmine-API-Key', redmine_access_key)
+    """Returns the status ID for the specified name used by redmine the project.
+
+    status_name string: A string for the status name.
+
+    Return value:
+        If such a status is not found, or not possible to process the request, returned None.
+    """
+    req = Request('%s/issue_statuses.json' % _service_host_project())
+    req.add_header('X-Redmine-API-Key', _service_access_key())
     try:
         content = urlopen(req).read()
-    except URLError as e:
+    except URLError as err:
         print('We failed to reach a server.')
-        print('Reason: ', e.reason)
-        return
+        print('Reason: ', err.reason)
+        return None
     else:
         data = json.loads(content)
     try:
-        return list(filter(lambda x: x['name'].upper() == status_name.upper(), data['issue_statuses']))[0]['id']
+        return list(filter(
+            lambda x: x['name'].upper() == status_name.upper(), data['issue_statuses']))[0]['id']
     except IndexError:
         print("The issue status '%s' does not exist." % status_name)
 
 
 def update_status_issue(issue, status_id, notes):
+    """Request to change the status of a problem in a redmine project.
+
+    'issue': A hash of the issue is bound to a redmine project.
+    'status_id': Id status used by redmine the project.
+    'notes': Comments about the update.
+
+    Return value:
+       0 - on success
+       non zero - HTTP protocol errors are valid responses.
+    """
     values = '''{ "issue": { "status_id": "%s", "notes": "%s" } }''' % (status_id, notes)
-    req = Request('%s/issues/%s.json' % (redmine_host_project, issue), data=values.encode(), method='PUT')
+    req = Request(
+        '%s/issues/%s.json' % (_service_host_project(), issue), data=values.encode(), method='PUT')
     req.add_header('Content-Type', 'application/json')
-    req.add_header('X-Redmine-API-Key', redmine_access_key)
+    req.add_header('X-Redmine-API-Key', _service_access_key())
     try:
-        with urlopen(req) as f:
+        with urlopen(req) as context:
             pass
-    except HTTPError as e:
+        return 0 if context.code == 200 else context.code
+    except HTTPError as err:
         print('The server couldn\'t fulfill the request.')
-        print('Error code: ', e.code)
-        return e.code
-    except URLError as e:
+        print('Error code: ', err.code)
+    except URLError as err:
         print('We failed to reach a server.')
-        print('Reason: ', e.reason)
-        return e.code
-    else:
-        return f.code
+        print('Reason: ', err.reason)
+
+
+def _service_host_project():
+    # Returns the host project passed through the system variable,
+    # if it is absent, returns the default value.
+    if 'REDMINE_HOST_PROJECT' in os.environ:
+        return os.environ["REDMINE_HOST_PROJECT"]
+    return "https://"
+
+
+def _service_access_key():
+    # Returns the access key passed through the system variable,
+    # if it is absent, returns the empty value.
+    if 'REDMINE_API_ACCESS_KEY' in os.environ:
+        return os.environ["REDMINE_API_ACCESS_KEY"]
+    return ""
 
 
 def use_as_os_command():
-    ''' redmine.py <issue> <status> [notes]
+    """redmine.py <issue> <status> [notes]
 
     issue - A hash of the issue is bound to a project.
     status - Status workflow. Issues reports should show only statuses used by the project
@@ -84,8 +116,7 @@ def use_as_os_command():
     Return value:
        0 - on success
        non zero - if any error
-    '''
-
+    """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('-h', '--help', action='store_true')
     parser.add_argument("issue", nargs="?")
@@ -119,6 +150,4 @@ def use_as_os_command():
 
 
 if __name__ == '__main__':
-    redmine_host_project = 'http://redmine.tomsksoft/tomsksoft'
-    redmine_access_key = os.environ["REDMINE_API_ACCESS_KEY"]
     use_as_os_command()
