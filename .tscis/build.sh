@@ -27,6 +27,8 @@ fi
 
 cd ..
 
-cp lib-utils/* $cis_base_dir/jobs/$job_name/$build_number/artifacts
+[ -e __pycache__ ] && rm __pycache__
+
+cp -r lib-utils/* $cis_base_dir/jobs/$job_name/$build_number/artifacts
 
 cd ..
