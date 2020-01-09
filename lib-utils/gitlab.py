@@ -37,17 +37,17 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
 
-def merge_request(source_branch, target_branch, assignee):
+def merge_request(source_branch, target_branch, assignee=None):
     """merge_request <source_branch> <target_branch> [assignee]
-     Creates a new merge request.
 
+Creates a new merge request.
     'source_branch': The source branch.
     'target_branch': The target branch.
     'assignee': Assignee user ID (no required).
 
-    Return value:
-       0 - on success
-       non zero - HTTP protocol errors are valid responses.
+Return value:
+     0 - on success
+     non zero - HTTP protocol errors are valid responses.
     """
     values = json.dumps(dict(
         id=_service_host_project(),
@@ -89,22 +89,26 @@ def _service_access_key():
 
 
 def use_as_os_command():
-    """gitlab.py merge_request <source_branch> <target_branch> [assignee]
+    """gitlab.py --merge_request <source_branch> <target_branch> [assignee]
 
-    issue - A hash of the issue is bound to a project.
-    status - Status workflow. Issues reports should show only statuses used by the project
-    notes - Comments about the update
+    source_branch - A hash of the issue is bound to a project.
+    target_branch - Status workflow. Issues reports should show only statuses used by the project
+    assignee - Comments about the update
 
     Return value:
        0 - on success
        non zero - if any error
     """
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('-h', '--help', action='help')
+    parser.add_argument('-h', '--help', action='store_true')
     parser.add_argument('--merge_request', nargs='*')
     parser.usage = use_as_os_command.__doc__
 
     args = parser.parse_args()
+
+    if args.help:
+        print('usage: ' + use_as_os_command.__doc__)
+        sys.exit(0)
 
     # globals()[sys.argv[1]]()
 
@@ -113,15 +117,15 @@ def use_as_os_command():
 
         if params.get(0) is None:
             print('''<source_branch> isn't specified''')
-            print('usage: ' + use_as_os_command.__doc__)
+            print('usage: ' + merge_request.__doc__)
             sys.exit(2)
 
         if params.get(1) is None:
             print('''<target_branch> isn't specified''')
-            print('usage: ' + use_as_os_command.__doc__)
+            print('usage: ' + merge_request.__doc__)
             sys.exit(2)
 
-        if merge_request(params.get(0), params.get(1), params.get(3, "")) != 0:
+        if merge_request(params.get(0), params.get(1), params.get(3)) != 0:
             print('''Merge request not created.''')
             sys.exit(1)
 
