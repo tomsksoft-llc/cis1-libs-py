@@ -125,7 +125,7 @@ def use_as_os_command():
             print('usage: ' + merge_request.__doc__)
             sys.exit(2)
 
-        if merge_request(params.get(0), params.get(1), params.get(3)) != 0:
+        if merge_request(params.get(0), params.get(1), params.get(2)) != 0:
             print('''Merge request not created.''')
             sys.exit(1)
 
