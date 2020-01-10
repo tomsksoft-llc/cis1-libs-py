@@ -38,12 +38,16 @@ from urllib.error import URLError, HTTPError
 
 
 def merge_request(source_branch, target_branch, assignee=None):
-    """merge_request <source_branch> <target_branch> [assignee]
+    """ Creates a new merge request.
 
-Creates a new merge request.
+Args:
     'source_branch': The source branch.
     'target_branch': The target branch.
     'assignee': Assignee user ID (no required).
+
+The function uses the system variables:
+    GITLAB_HOST_PROJECT - URL-encoded path of the project
+    GITLAB_API_ACCESS_KEY - Private user toke
 
 Return value:
      0 - on success
@@ -95,9 +99,9 @@ def use_as_os_command():
     target_branch - Status workflow. Issues reports should show only statuses used by the project
     assignee - Comments about the update
 
-    Return value:
-       0 - on success
-       non zero - if any error
+Return value:
+    0 - on success
+    non zero - if any error
     """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('-h', '--help', action='store_true')
@@ -128,6 +132,9 @@ def use_as_os_command():
         if merge_request(params.get(0), params.get(1), params.get(2)) != 0:
             print('''Merge request not created.''')
             sys.exit(1)
+    else:
+        print('usage: ' + use_as_os_command.__doc__)
+        sys.exit(0)
 
 
 if __name__ == '__main__':
