@@ -144,7 +144,7 @@ def use_as_os_command():
     if status_id is None:
         sys.exit(1)
 
-    if update_status_issue(args.issue, status_id, args.notes) != 200:
+    if update_status_issue(args.issue, status_id, args.notes) != 0:
         print('''Status has not been updated''')
         sys.exit(1)
 

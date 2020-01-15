@@ -46,7 +46,7 @@ Args:
     'assignee': Assignee user ID (no required).
 
 The function uses the system variables:
-    GITLAB_HOST_PROJECT - URL-encoded path of the project
+    GITLAB_HOST_PROJECT - URL-encoded path of the GitLab project
     GITLAB_API_ACCESS_KEY - Private user toke
 
 Return value:
