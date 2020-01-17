@@ -4,7 +4,8 @@ import re
 from urllib.parse import urlparse
 import httplib2
 import requests
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
+import lxml
 
 """def link_check(url, depth, check_only_internal) 
 
@@ -39,88 +40,89 @@ _regex = re.compile(
     r'(?::\d+)?'
     r'(?:/?|[/?]\S+)$', re.IGNORECASE
 )
-
+_FORBIDDEN_PREFIXES = ['#', 'tel:', 'mailto:']
 
 def link_check(url, depth, check_only_internal):
 
-    if depth < 0:
-        return -1
-
     if type(url) == str:
+        if depth < 0:
+            return  -1
         _checked_links.append(url)
         url = Link(url, None, depth)
-
         main_url = True
     else:
         main_url = False
-    _checked_links.append(url.link)
+        _checked_links.append(url.link)
 
+    host = url.link.split("//")[0] + "//" + url.link.split("//")[-1].split("/")[0]
+    domain = url.link.split("//")[-1].split("/")[0]
     try:
-        with requests.get(url.link, stream=True, headers={'Connection': 'close'}) as res:
-            status = res.status_code
-            links = _link_search(res, 'a', 'href') \
-                    + _link_search(res, 'link', 'href') \
-                    + _link_search(res, 'script', 'src') \
-                    + _link_search(res, 'source', 'srcset') \
-                    + _link_search(res, 'img', 'src')
-        _valid_links.append(url.link)
+        request = requests.get(url.link)
+        status = request.status_code
     except Exception as err:
         _invalid_links.append(url.link)
         return 0
+    soup = BeautifulSoup(request.content, 'lxml')
+    links = _link_search(soup, 'a', 'href', host, domain) \
+     + _link_search(soup, 'link', 'href', host, domain) \
+     + _link_search(soup, 'script', 'src', host, domain) \
+     + _link_search(soup, 'source', 'srcset', host, domain) \
+     + _link_search(soup, 'img', 'src', host, domain) \
+    + _link_search(soup, 'div', 'href', host, domain)
 
-    if depth == 0:
-        return status
+    _valid_links.append(url.link)
 
-    full_links = []
     internal_links = []
     external_links = []
-    # build link
-    for link in links:
-        if (url.link.split("//")[0] + "//" + url.link.split("//")[-1].split("/")[0] not in link) and (not re.match(_regex, link)):
-            full_links.append(url.link.split("//")[0] + "//" + url.link.split("//")[-1].split("/")[0] + link)
-        else:
-            full_links.append(link)
+
 
     # internal external sort
-    for link in full_links:
-        if url.link.split("//")[-1].split("/")[0] not in link:
+    for link in links:
+        if domain not in link:
             external_links.append(link)
         else:
             internal_links.append(link)
 
     # check if link must be checked - continue if no
     for link in internal_links:
-
-
-        #print('Проверка ', link, depth - 1)
         if link not in _checked_links:
-
-
-
             link_check(Link(link, None, depth - 1), depth - 1, check_only_internal)
 
     for link in external_links:
         if link not in _checked_links:
-
             if check_only_internal:
-
                 link_check(Link(link, None, 0), 0, True)
             else:
                 link_check(Link(link, None, depth - 1), depth - 1, check_only_internal)
-
+    if depth < 0:
+        return 0
     if main_url:
         _complete_check(url)
     else:
         return 0
 
-def _link_search(response, tag, attribute):
-    added_links = []
-    for link in BeautifulSoup(response.content, "html.parser",
-                              from_encoding="iso-8859-1",
-                              parse_only=SoupStrainer(tag)):
-        if link.has_attr(attribute):
-            added_links.append(link[attribute])
-    return added_links
+
+
+
+
+def _link_search(soup, tag, attr, host, domain):
+    links = []
+
+    for tag in soup.find_all(tag):
+        if tag.has_attr(attr):
+            link = tag[attr]
+
+
+            if all(not link.startswith(prefix) for prefix in _FORBIDDEN_PREFIXES):
+                if link.startswith('/') and not link.startswith('//'):
+                            # преобразуем относительную ссылку в абсолютную
+                    link = host + link
+                if urlparse(link).netloc == domain and link not in _checked_links:
+                    links.append(link)
+        else:
+            pass
+    return links
+
 
 
 def _complete_check(main_link):
