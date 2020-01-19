@@ -7,26 +7,11 @@ import requests
 from bs4 import BeautifulSoup
 import lxml
 
-"""def link_check(url, depth, check_only_internal) 
-
-url_obj=create object if need;
-
-depth <0 return ???
-depth == 0 -> get-response; write link to array; return result
-get_links from response
-do
-  build full link
-  check if link must be checked - continue if no
-  check_links( full link, depth-1 , check_only_internal ) - for internal
-  check_links( full link, 0, True) - for external
-done"""
-
-
 class Link:
-    def __init__(self, link, status, depth):
+    def __init__(self, link, status, way):
         self.link = link
         self.status = status
-        self.depth = depth
+        self.way = way
 
 
 _valid_links = []
@@ -41,26 +26,46 @@ _regex = re.compile(
     r'(?:/?|[/?]\S+)$', re.IGNORECASE
 )
 _FORBIDDEN_PREFIXES = ['#', 'tel:', 'mailto:']
+_way = ''
 
 def link_check(url, depth, check_only_internal):
-
+    global _way
     if type(url) == str:
+        depth+=1
+        _checked_links.append(url)
+        _way = url
         if depth < 0:
             return  -1
-        _checked_links.append(url)
-        url = Link(url, None, depth)
-        main_url = True
+        elif depth == 0:
+            try:
+                request = requests.get(url)
+                status = request.status_code
+                print('Url {0} checked\nstatus code - {1}'.format(url, status))
+                return 0
+            except:
+                return -1
+        else:
+            url = Link(url, None, _way)
+            main_url = True
     else:
+        _way = _way + '->' + url.link
         main_url = False
-        _checked_links.append(url.link)
-
     host = url.link.split("//")[0] + "//" + url.link.split("//")[-1].split("/")[0]
     domain = url.link.split("//")[-1].split("/")[0]
     try:
         request = requests.get(url.link)
         status = request.status_code
+        url.status = status
+        if status != 200:
+            _invalid_links.append(url)
+            return 0
+        _valid_links.append(url)
     except Exception as err:
-        _invalid_links.append(url.link)
+        url.status = err
+        _invalid_links.append(url)
+        return 0
+    if depth < 0:
+        _way = _way.split('->')[0]
         return 0
     soup = BeautifulSoup(request.content, 'lxml')
     links = _link_search(soup, 'a', 'href', host, domain) \
@@ -68,54 +73,45 @@ def link_check(url, depth, check_only_internal):
      + _link_search(soup, 'script', 'src', host, domain) \
      + _link_search(soup, 'source', 'srcset', host, domain) \
      + _link_search(soup, 'img', 'src', host, domain) \
-    + _link_search(soup, 'div', 'href', host, domain)
-
-    _valid_links.append(url.link)
-
+     + _link_search(soup, 'div', 'href', host, domain) \
+     + _link_search(soup, 'h1', 'href', host, domain) \
+     + _link_search(soup, 'h2', 'href', host, domain) \
+     + _link_search(soup, 'h3', 'href', host, domain) \
+     + _link_search(soup, 'h4', 'href', host, domain)
     internal_links = []
     external_links = []
 
-
-    # internal external sort
     for link in links:
         if domain not in link:
             external_links.append(link)
         else:
             internal_links.append(link)
-
     # check if link must be checked - continue if no
     for link in internal_links:
         if link not in _checked_links:
-            link_check(Link(link, None, depth - 1), depth - 1, check_only_internal)
-
+            _checked_links.append(link)
+            link_check(Link(link, None, _way), depth - 1, check_only_internal)
     for link in external_links:
         if link not in _checked_links:
+            _checked_links.append(link)
             if check_only_internal:
-                link_check(Link(link, None, 0), 0, True)
+                link_check(Link(link, None, _way), 0, True)
             else:
-                link_check(Link(link, None, depth - 1), depth - 1, check_only_internal)
-    if depth < 0:
-        return 0
+                link_check(Link(link, None, _way), depth - 1, check_only_internal)
+
+
     if main_url:
         _complete_check(url)
+        return status
     else:
         return 0
-
-
-
-
-
 def _link_search(soup, tag, attr, host, domain):
     links = []
-
     for tag in soup.find_all(tag):
         if tag.has_attr(attr):
             link = tag[attr]
-
-
             if all(not link.startswith(prefix) for prefix in _FORBIDDEN_PREFIXES):
                 if link.startswith('/') and not link.startswith('//'):
-                            # преобразуем относительную ссылку в абсолютную
                     link = host + link
                 if urlparse(link).netloc == domain and link not in _checked_links:
                     links.append(link)
@@ -123,19 +119,20 @@ def _link_search(soup, tag, attr, host, domain):
             pass
     return links
 
-
-
 def _complete_check(main_link):
-    print(len(_checked_links))
+    print(len(_valid_links))
+    print(len(_invalid_links))
     if len(_invalid_links) > 0:
         print('Web site: {0} has invalid URLs:'.format(main_link.link))
-        for link in _invalid_links:
-            print(link)
+        for url in _invalid_links:
+            print(url.link)
+            print('Status: ', url.status)
+            print('Way to invalid url: \n', url.way)
         print('Valid URLs: ')
     else:
         print('URLs on {0} checked, all links work. Valid URLs:'.format(main_link.link))
-    for link in _valid_links:
-        print(link)
+    for url in _valid_links:
+        print(url.link)
 
 
 def use_as_os_command():
