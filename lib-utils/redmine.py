@@ -37,6 +37,35 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
 
+def showing_an_issue(issue, status=None, tracker=None):
+    """Showing an issue used by redmine the project.
+
+    issue string: A hash of the issue is bound to a redmine project.
+
+    Return value:
+        If such a issue is not found, or not possible to process the request, returned None.
+    """
+    req = Request('%s/issues/%s.json' % (_service_host_project(), issue))
+    req.add_header('X-Redmine-API-Key', _service_access_key())
+    try:
+        content = urlopen(req).read()
+    except URLError as err:
+        print('We failed to reach a server.')
+        print('Reason: ', err.reason)
+        return None
+
+    data = json.loads(content)
+    if status is not None and data['issue']['status']['name'] != status:
+        print("The issue status '%s' does not exist." % status)
+        return False
+
+    if tracker is not None and data['issue']['tracker']['name'] != tracker:
+        print("The tracker status '%s' does not exist." % tracker)
+        return False
+
+    return True
+
+
 def get_status_identifier_by_name(status_name):
     """Returns the status ID for the specified name used by redmine the project.
 
@@ -122,6 +151,8 @@ def use_as_os_command():
     parser.add_argument("issue", nargs="?")
     parser.add_argument("status", nargs="?")
     parser.add_argument("notes", nargs='?', default='')
+    parser.add_argument('-t', '--tracker', nargs="?")
+    parser.add_argument('-s', '--status', nargs="?")
     parser.usage = use_as_os_command.__doc__
 
     args = parser.parse_args()
@@ -136,9 +167,11 @@ def use_as_os_command():
         sys.exit(2)
 
     if args.status is None:
-        print('''<status> isn't specified''')
-        print('usage: ' + use_as_os_command.__doc__)
-        sys.exit(2)
+        if showing_an_issue(args.issue, args.status, args.tracker):
+            print('''This issue #%s exists''' % args.issue)
+            sys.exit(0)
+
+        sys.exit(1)
 
     status_id = get_status_identifier_by_name(args.status)
     if status_id is None:
