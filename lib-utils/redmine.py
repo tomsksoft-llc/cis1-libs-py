@@ -38,12 +38,16 @@ from urllib.error import URLError, HTTPError
 
 
 def showing_an_issue(issue, status=None, tracker=None):
-    """Showing an issue used by redmine the project.
+    """Verify an issue used by redmine the project.
 
-    issue string: A hash of the issue is bound to a redmine project.
+issue string: The issue is bound in redmine.
+status string: The issue status.
+tracker string: The issue tracker.
 
-    Return value:
-        If such a issue is not found, or not possible to process the request, returned None.
+Return value:
+    If a issue is exist, and the status and/or of tracker  matched, returned true.
+    If a issue is exist, but the status of tracker does not match, returned false.
+    If such a issue is not found, or not possible to process the request, returned None.
     """
     req = Request('%s/issues/%s.json' % (_service_host_project(), issue))
     req.add_header('X-Redmine-API-Key', _service_access_key())
