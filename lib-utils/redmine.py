@@ -141,14 +141,23 @@ def _service_access_key():
 
 def use_as_os_command():
     """redmine.py <issue> <status> [notes]
+set status in issue and comments
 
     issue - A hash of the issue is bound to a project.
-    status - Status workflow. Issues reports should show only statuses used by the project
+    status - Set status workflow, of the exist in redmine project
     notes - Comments about the update
 
-    Return value:
-       0 - on success
-       non zero - if any error
+
+redmine.py <issue> [-s | --status <status>] [-t | --tracker <tracker>]
+verify exist of the issue, its status and tracker
+
+    issue - A hash of the issue is bound to a project.
+    status - verify issue status.
+    tracker - verify issue tracker.
+
+Return value:
+    0 - on success
+    non zero - if any error
     """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('-h', '--help', action='store_true')
