@@ -162,7 +162,7 @@ Return value:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('-h', '--help', action='store_true')
     parser.add_argument("issue", nargs="?")
-    parser.add_argument("status", nargs="?")
+    parser.add_argument("set_status", nargs="?")
     parser.add_argument("notes", nargs='?', default='')
     parser.add_argument('-t', '--tracker', nargs="?")
     parser.add_argument('-s', '--status', nargs="?")
@@ -179,14 +179,15 @@ Return value:
         print('usage: ' + use_as_os_command.__doc__)
         sys.exit(2)
 
-    if args.status is None:
+    if args.set_status is None:
         if showing_an_issue(args.issue, args.status, args.tracker):
             print('''This issue #%s exists''' % args.issue)
             sys.exit(0)
 
         sys.exit(1)
 
-    status_id = get_status_identifier_by_name(args.status)
+    status_id = get_status_identifier_by_name(args.set_status)
+
     if status_id is None:
         sys.exit(1)
 
