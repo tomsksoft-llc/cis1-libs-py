@@ -35,7 +35,7 @@ import os
 import argparse
 
 
-def download_repository(repository_url, repository_dir, ref):
+def download_repository(repository_url, repository_dir, ref='master'):
     '''Download git repository and checkout to specified ref
 
     Args:
@@ -47,15 +47,16 @@ def download_repository(repository_url, repository_dir, ref):
         0: on success
        -1: if fail
     '''
-    res = subprocess.run(['git', 'clone', repository_url,
-                          repository_dir], check=True).returncode
-    if res != 0:
-        return -1
-    os.chdir(repository_dir)
+    try:
+        if subprocess.run(['git', 'clone', repository_url, repository_dir],
+                          check=True).returncode != 0: return 1
 
-    res = subprocess.run(['git', 'checkout', ref], check=True).returncode
-    if res != 0:
-        return -1
+        os.chdir(repository_dir)
+
+        if subprocess.run(['git', 'checkout', ref],
+                          check=True).returncode != 0: return 1
+    except subprocess.CalledProcessError:
+        return 1
 
     return 0
 
