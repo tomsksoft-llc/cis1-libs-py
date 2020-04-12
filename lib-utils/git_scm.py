@@ -47,15 +47,15 @@ def download_repository(repository_url, repository_dir, ref):
         0: on success
        -1: if fail
     '''
-    res = subprocess.run(['git', 'clone', repository_url,
-                          repository_dir], check=True).returncode
-    if res != 0:
-        return -1
+    
+    if subprocess.run(['git', 'clone', repository_url, repository_dir],
+                        check=True).returncode != 0: return 1
+
     os.chdir(repository_dir)
 
-    res = subprocess.run(['git', 'checkout', ref], check=True).returncode
-    if res != 0:
-        return -1
+    if subprocess.run(['git', 'checkout', ref],
+                        check=True).returncode != 0: return 1
+ 
 
     return 0
 
@@ -99,7 +99,7 @@ def use_as_os_command():
         sys.exit(2)
 
     res = download_repository(args.repo, args.dir, args.ref)
-    return res
+    sys.exit(res)
 
 
 if __name__ == '__main__':
