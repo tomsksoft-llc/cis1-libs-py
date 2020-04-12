@@ -47,15 +47,13 @@ def download_repository(repository_url, repository_dir, ref):
         0: on success
        -1: if fail
     '''
-    
-    if subprocess.run(['git', 'clone', repository_url, repository_dir],
-                        check=True).returncode != 0: return 1
+    if subprocess.run(['git', 'clone', repository_url,
+                       repository_dir], check=True).returncode != 0: return 1
 
     os.chdir(repository_dir)
 
-    if subprocess.run(['git', 'checkout', ref],
-                        check=True).returncode != 0: return 1
- 
+    if subprocess.run(['git', 'checkout',
+                       ref], check=True).returncode != 0: return 1
 
     return 0
 
