@@ -1,22 +1,47 @@
+##############################################################################
+#
+# Copyright (c) 2020 TomskSoft LLC
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# FILE: link_check.py
+# Author: Maxim Felchuck
+#
+##############################################################################
+'''Tis is a script for checking a site for broken links
+
+'''
 import argparse
 import sys
 import re
-from urllib.parse import urlparse
-import httplib2
 import requests
 from bs4 import BeautifulSoup
-import lxml
-import time
 import tldextract
 from progress.bar import IncrementalBar
 
 
 class Link:
-    def __init__(self, link, status, way):
+    def __init__(self, link, status, way, host):
         self.link = link
         self.status = status
         self.way = way
-
+        self.host = host
 
 _valid_links = []
 _invalid_links = []
@@ -30,16 +55,15 @@ _regex = re.compile(
     r'(?:/?|[/?]\S+)$', re.IGNORECASE
 )
 _FORBIDDEN_PREFIXES = ['#', 'tel:', 'mailto:']
-_host = ''
-_domain = ''
 
 
-def is_downloadable(url):
+
+def _is_downloadable(url):
     """
     Does the url contain a downloadable resource
     """
-    h = requests.head(url, allow_redirects=True)
-    header = h.headers
+    head = requests.head(url, allow_redirects=True)
+    header = head.headers
     content_type = header.get('content-type')
     if 'text' in content_type.lower():
         return False
@@ -49,11 +73,19 @@ def is_downloadable(url):
 
 
 def link_check(url, depth, check_external):
-    global _host, _domain
-    if type(url) == str:
+    '''Checking site for broken links to specified url
+
+    Args:
+        url: site url
+        depth: depth cheking
+        check_external: check external links or only internal
+
+    Returns:
+        0: on success
+        non 0: if fail
+    '''
+    if isinstance(url, str):
         ext = tldextract.extract(url)
-        _host = url.split("//")[0] + '//' + ext.domain + '.' + ext.suffix
-        _domain = ext.domain + '.' + ext.suffix
         if depth < 0:
             return -1
         elif depth == 0:
@@ -66,13 +98,14 @@ def link_check(url, depth, check_external):
                 print('Url {0} checked\nError: {1}'.format(url, err))
                 return -1
         else:
-            url = Link(url, None, url)
+            host = url.split("//")[0] + '//' + ext.domain + '.' + ext.suffix
+            url = Link(url, None, url, host)
             _checked_links.append(url.link)
             main_url = True
     else:
         main_url = False
 
-    if is_downloadable(url.link):
+    if _is_downloadable(url.link):
         request = requests.head(url.link)
         if request.ok:
             _valid_links.append(url)
@@ -96,41 +129,43 @@ def link_check(url, depth, check_external):
     if depth == 0:
         return 0
     soup = BeautifulSoup(request.content, 'lxml')
-    links = _link_search(soup, 'a', 'href') \
-            + _link_search(soup, 'link', 'href') \
-            + _link_search(soup, 'script', 'src') \
-            + _link_search(soup, 'source', 'srcset') \
-            + _link_search(soup, 'img', 'src', ) \
-            + _link_search(soup, 'div', 'href') \
+    links = _link_search(soup, 'a', 'href', url.host) \
+            + _link_search(soup, 'link', 'href', url.host) \
+            + _link_search(soup, 'script', 'src', url.host) \
+            + _link_search(soup, 'source', 'srcset', url.host) \
+            + _link_search(soup, 'img', 'src', url.host) \
+            + _link_search(soup, 'div', 'href', url.host) \
 
     if main_url:
-        bar = IncrementalBar('Checking: ', max=len(links), suffix='%(percent).1f%% - %(elapsed)ds')
+        progress_bar = IncrementalBar('Checking: ', max=len(links),
+                                      suffix='%(percent).1f%% - %(elapsed)ds')
 
     for link in links:
-        if _host in link:
-            link_check(Link(link, None, url.way + '->' + url.link), depth - 1, check_external)
-        else:
-            if check_external:
-                link_check(Link(link, None, url.way + '->' + url.link), 0, False)
+        if url.host in link:
+
+            link_check(Link(link, None, url.way + '->' + url.link, url.host),
+                       depth - 1, check_external)
+        elif check_external:
+            link_check(Link(link, None, url.way + '->' + url.link, None), 0, False)
         if main_url:
-            bar.next()
+            progress_bar.next()
 
     if main_url:
-        bar.finish()
+        progress_bar.finish()
         _complete_check(url)
         return status
-    else:
-        return 0
+    
+    return 0
 
 
-def _link_search(soup, tag, attr):
+def _link_search(soup, tag_name, attr, host):
     links = []
-    for tag in soup.find_all(tag):
+    for tag in soup.find_all(tag_name):
         if tag.has_attr(attr):
             link = tag[attr]
             if all(not link.startswith(prefix) for prefix in _FORBIDDEN_PREFIXES):
                 if link.startswith('/') and not link.startswith('//'):
-                    link = _host + link
+                    link = host + link
                 if link not in _checked_links:
                     links.append(link)
                     _checked_links.append(link)
@@ -141,8 +176,6 @@ def _link_search(soup, tag, attr):
 
 
 def _complete_check(main_link):
-    #print(len(_valid_links))
-    #print(len(_invalid_links))
     if len(_invalid_links) > 0:
         print('Web site: {0} has invalid URLs:'.format(main_link.link))
         for url in _invalid_links:
