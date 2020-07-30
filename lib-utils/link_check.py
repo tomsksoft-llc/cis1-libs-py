@@ -63,6 +63,7 @@ def _is_downloadable(url):
     """
     Does the url contain a downloadable resource
     """
+    
     head = requests.head(url, allow_redirects=True, verify=False)
     header = head.headers
     content_type = header.get('content-type')
@@ -105,13 +106,18 @@ def link_check(url, depth, check_external):
             main_url = True
     else:
         main_url = False
-
-    if _is_downloadable(url.link):
-        request = requests.head(url.link)
-        if request.ok:
-            _valid_links.append(url)
-        else:
-            _invalid_links.append(url)
+        
+    try:
+        if _is_downloadable(url.link):
+            request = requests.head(url.link, verify=False)
+            if request.ok:
+                _valid_links.append(url)
+            else:
+                _invalid_links.append(url)
+            return 0
+    except Exception as err:
+        url.status = err
+        _invalid_links.append(url)
         return 0
 
     try:
