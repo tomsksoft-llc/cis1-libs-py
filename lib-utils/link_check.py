@@ -34,6 +34,8 @@ import requests
 from bs4 import BeautifulSoup
 import tldextract
 from progress.bar import IncrementalBar
+from urllib3.exceptions import InsecureRequestWarning
+
 
 
 class Link:
@@ -55,14 +57,13 @@ _regex = re.compile(
     r'(?:/?|[/?]\S+)$', re.IGNORECASE
 )
 _FORBIDDEN_PREFIXES = ['#', 'tel:', 'mailto:']
-
-
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 def _is_downloadable(url):
     """
     Does the url contain a downloadable resource
     """
-    head = requests.head(url, allow_redirects=True)
+    head = requests.head(url, allow_redirects=True, verify=False)
     header = head.headers
     content_type = header.get('content-type')
     if 'text' in content_type.lower():
@@ -90,7 +91,7 @@ def link_check(url, depth, check_external):
             return -1
         elif depth == 0:
             try:
-                request = requests.get(url)
+                request = requests.get(url, verify=False)
                 status = request.status_code
                 print('Url {0} checked\nstatus code - {1}'.format(url, status))
                 return 0
@@ -114,7 +115,7 @@ def link_check(url, depth, check_external):
         return 0
 
     try:
-        request = requests.get(url.link)
+        request = requests.get(url.link, verify=False)
         status = request.status_code
         url.status = status
         if request.ok:
