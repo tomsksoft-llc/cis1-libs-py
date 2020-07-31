@@ -226,6 +226,10 @@ def use_as_os_command():
         print('''<depth_to_check> isn't specified''')
         print('usage: ' + use_as_os_command.__doc__)
         sys.exit(2)
+    if args.depth_to_check <= 0:
+        print('''<depth_to_check> must be > 0''')
+        print('usage: ' + use_as_os_command.__doc__)
+        sys.exit(2)
     if args.check_external is None:
         print('''<check_internal> isn't specified''')
         print('usage: ' + use_as_os_command.__doc__)
