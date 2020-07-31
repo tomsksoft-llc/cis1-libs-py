@@ -2,5 +2,4 @@ argparse
 requests
 httplib3
 bs4
-tldextract
 progress

@@ -32,7 +32,6 @@ import sys
 import re
 import requests
 from bs4 import BeautifulSoup
-import tldextract
 from progress.bar import IncrementalBar
 from urllib3.exceptions import InsecureRequestWarning
 
@@ -87,7 +86,6 @@ def link_check(url, depth, check_external):
         non 0: if fail
     '''
     if isinstance(url, str):
-        ext = tldextract.extract(url)
         if depth < 0:
             return -1
         elif depth == 0:
@@ -100,8 +98,9 @@ def link_check(url, depth, check_external):
                 print('Url {0} checked\nError: {1}'.format(url, err))
                 return -1
         else:
-            host = url.split("//")[0] + '//' + ext.domain + '.' + ext.suffix
-            url = Link(url, None, url, host)
+            sert = url.split("//")[0]
+            host = sert + '//' + url.replace(url.split("//")[0], '').replace("//", '').split('/')[0]
+            url = Link(url, None, '', host)
             _checked_links.append(url.link)
             main_url = True
     else:
@@ -110,14 +109,26 @@ def link_check(url, depth, check_external):
     try:
         if _is_downloadable(url.link):
             request = requests.head(url.link, verify=False)
+            status = request.status_code
+            if main_url:
+                print('{0} is downloadable link'.format(url.link))
+                print('checked\nstatus code - {0}'.format(status))
+                return status
+            return 0
             if request.ok:
                 _valid_links.append(url)
             else:
                 _invalid_links.append(url)
+
             return 0
     except Exception as err:
         url.status = err
         _invalid_links.append(url)
+        if main_url:
+            print('{0} is downloadable link'.format(url.link))
+            print('checked\nstatus code - {0}'.format(url.status))
+            return -1
+
         return 0
 
     try:
