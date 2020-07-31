@@ -1,4 +1,6 @@
 argparse
 requests
-httplib2
+httplib3
 bs4
+tldextract
+progress
