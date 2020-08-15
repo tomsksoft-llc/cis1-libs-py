@@ -114,7 +114,6 @@ def link_check(url, depth, check_external):
                 print('{0} is downloadable link'.format(url.link))
                 print('checked\nstatus code - {0}'.format(status))
                 return status
-            return 0
             if request.ok:
                 _valid_links.append(url)
             else:
@@ -182,8 +181,15 @@ def _link_search(soup, tag_name, attr, host):
         if tag.has_attr(attr):
             link = tag[attr]
             if all(not link.startswith(prefix) for prefix in _FORBIDDEN_PREFIXES):
-                if link.startswith('/') and not link.startswith('//'):
+                if link.startswith('//'):
+                    if host.startswith('https'):
+                        link = 'https:' + link
+                    else:
+                        link = 'http:' + link
+                elif link.startswith('/'):
                     link = host + link
+                elif not link.startswith('/') and not link.startswith('http'):
+                    link = host + '/' + link
                 if link not in _checked_links:
                     links.append(link)
                     _checked_links.append(link)
