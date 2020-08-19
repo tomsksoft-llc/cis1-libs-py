@@ -146,12 +146,12 @@ def link_check(url, depth, check_external):
     if depth == 0:
         return 0
     soup = BeautifulSoup(request.content, 'lxml')
-    links = _link_search(soup, 'a', 'href', url.host) \
-            + _link_search(soup, 'link', 'href', url.host) \
-            + _link_search(soup, 'script', 'src', url.host) \
-            + _link_search(soup, 'source', 'srcset', url.host) \
-            + _link_search(soup, 'img', 'src', url.host) \
-            + _link_search(soup, 'div', 'href', url.host) \
+    links = _link_search(soup, 'a', 'href', url) \
+            + _link_search(soup, 'link', 'href', url) \
+            + _link_search(soup, 'script', 'src', url) \
+            + _link_search(soup, 'source', 'srcset', url) \
+            + _link_search(soup, 'img', 'src', url) \
+            + _link_search(soup, 'div', 'href', url) \
 
     if main_url:
         progress_bar = IncrementalBar('Checking: ', max=len(links),
@@ -175,21 +175,22 @@ def link_check(url, depth, check_external):
     return 0
 
 
-def _link_search(soup, tag_name, attr, host):
+def _link_search(soup, tag_name, attr, url):
     links = []
     for tag in soup.find_all(tag_name):
         if tag.has_attr(attr):
             link = tag[attr]
             if all(not link.startswith(prefix) for prefix in _FORBIDDEN_PREFIXES):
+                if re.match(_regex, link):
+                    continue
                 if link.startswith('//'):
-                    if host.startswith('https'):
-                        link = 'https:' + link
-                    else:
-                        link = 'http:' + link
+                    link = url.host.split('//')[0] + link
                 elif link.startswith('/'):
-                    link = host + link
-                elif not link.startswith('/') and not link.startswith('http'):
-                    link = host + '/' + link
+                    link = url.host + link
+                elif link.startswith('..'):
+                    link = url.link.replace(url.link.split('/')[-1], '') + link.replace('..','')
+                else:
+                    link = url.link + '/' + link
                 if link not in _checked_links:
                     links.append(link)
                     _checked_links.append(link)
