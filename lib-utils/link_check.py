@@ -101,6 +101,7 @@ def link_check(url, depth, check_external):
             sert = url.split("//")[0]
             host = sert + '//' + url.replace(url.split("//")[0], '').replace("//", '').split('/')[0]
             url = Link(url, None, '', host)
+            print('Host:', host)
             _checked_links.append(url.link)
             main_url = True
     else:
@@ -159,7 +160,6 @@ def link_check(url, depth, check_external):
 
     for link in links:
         if url.host in link:
-
             link_check(Link(link, None, url.way + '->' + url.link, url.host),
                        depth - 1, check_external)
         elif check_external:
@@ -182,8 +182,8 @@ def _link_search(soup, tag_name, attr, url):
             link = tag[attr]
             if all(not link.startswith(prefix) for prefix in _FORBIDDEN_PREFIXES):
                 if re.match(_regex, link):
-                    continue
-                if link.startswith('//'):
+                    pass
+                elif link.startswith('//'):
                     link = url.host.split('//')[0] + link
                 elif link.startswith('/'):
                     link = url.host + link
