@@ -181,6 +181,8 @@ def _link_search(soup, tag_name, attr, url):
         if tag.has_attr(attr):
             link = tag[attr]
             if all(not link.startswith(prefix) for prefix in _FORBIDDEN_PREFIXES):
+                if link.startswith('javascript:'):
+                    continue
                 if re.match(_regex, link):
                     pass
                 elif link.startswith('//'):
@@ -204,6 +206,7 @@ def _complete_check(main_link):
     if len(_invalid_links) > 0:
         print('Web site: {0} has invalid URLs:'.format(main_link.link))
         for url in _invalid_links:
+            print('----------------------')
             print(url.link)
             print('Status: ', url.status)
             print('Way to invalid url: \n', url.way)
