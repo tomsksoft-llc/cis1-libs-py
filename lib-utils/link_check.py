@@ -34,7 +34,7 @@ import requests
 from bs4 import BeautifulSoup
 from progress.bar import IncrementalBar
 from urllib3.exceptions import InsecureRequestWarning
-
+import time
 
 
 class Link:
@@ -55,9 +55,20 @@ _regex = re.compile(
     r'(?::\d+)?'
     r'(?:/?|[/?]\S+)$', re.IGNORECASE
 )
-_FORBIDDEN_PREFIXES = ['#', 'tel:', 'mailto:']
+_FORBIDDEN_PREFIXES = ['#','tel:', 'mailto:']
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
-
+_headers = {
+  'accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+  'accept-encoding':'gzip, deflate, br',
+  'accept-language':'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+  'cache-control':'no-cache',
+  'dnt': '1',
+  'pragma': 'no-cache',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-site': 'none',
+  'sec-fetch-user': '?1',
+  'upgrade-insecure-requests': '1',
+  'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36'}
 def _is_downloadable(url):
     """
     Does the url contain a downloadable resource
@@ -101,7 +112,6 @@ def link_check(url, depth, check_external):
             sert = url.split("//")[0]
             host = sert + '//' + url.replace(url.split("//")[0], '').replace("//", '').split('/')[0]
             url = Link(url, None, '', host)
-            print('Host:', host)
             _checked_links.append(url.link)
             main_url = True
     else:
@@ -132,7 +142,8 @@ def link_check(url, depth, check_external):
         return 0
 
     try:
-        request = requests.get(url.link, verify=False)
+        time.sleep(0.01)
+        request = requests.get(url.link, headers=_headers, verify=False)
         status = request.status_code
         url.status = status
         if request.ok:
@@ -153,7 +164,7 @@ def link_check(url, depth, check_external):
             + _link_search(soup, 'source', 'srcset', url) \
             + _link_search(soup, 'img', 'src', url) \
             + _link_search(soup, 'div', 'href', url) \
-
+            
     if main_url:
         progress_bar = IncrementalBar('Checking: ', max=len(links),
                                       suffix='%(percent).1f%% - %(elapsed)ds')
@@ -177,22 +188,27 @@ def link_check(url, depth, check_external):
 
 def _link_search(soup, tag_name, attr, url):
     links = []
+    host = url.host
+    url = url.link
+    for end in ['.php', '.html']:
+        if end in url:     
+            new_url = url.replace(url.split('/')[-1], '')  
     for tag in soup.find_all(tag_name):
         if tag.has_attr(attr):
             link = tag[attr]
             if all(not link.startswith(prefix) for prefix in _FORBIDDEN_PREFIXES):
-                if link.startswith('javascript:'):
+                if link.startswith('javascript:') or link == '/':
                     continue
                 if re.match(_regex, link):
                     pass
                 elif link.startswith('//'):
-                    link = url.host.split('//')[0] + link
+                    link = host.split('//')[0] + link
                 elif link.startswith('/'):
-                    link = url.host + link
+                    link = host + link
                 elif link.startswith('..'):
-                    link = url.link.replace(url.link.split('/')[-1], '') + link.replace('..','')
+                    link = new_url.replace(new_url.split('/')[-1], '') + link.replace('..','')
                 else:
-                    link = url.link + '/' + link
+                    link = new_url + '/' + link
                 if link not in _checked_links:
                     links.append(link)
                     _checked_links.append(link)
