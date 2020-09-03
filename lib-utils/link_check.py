@@ -30,14 +30,21 @@
 import argparse
 import sys
 import re
+import time
 import requests
 from bs4 import BeautifulSoup
 from progress.bar import IncrementalBar
 from urllib3.exceptions import InsecureRequestWarning
-import time
+
 
 
 class Link:
+    """
+    link - link name
+    status - status of checking
+    way - way where the link was found
+    host - link's host
+    """
     def __init__(self, link, status, way, host):
         self.link = link
         self.status = status
@@ -55,26 +62,29 @@ _regex = re.compile(
     r'(?::\d+)?'
     r'(?:/?|[/?]\S+)$', re.IGNORECASE
 )
-_FORBIDDEN_PREFIXES = ['#','tel:', 'mailto:']
+_FORBIDDEN_PREFIXES = ['#', 'tel:', 'mailto:']
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 _headers = {
-  'accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-  'accept-encoding':'gzip, deflate, br',
-  'accept-language':'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-  'cache-control':'no-cache',
-  'dnt': '1',
-  'pragma': 'no-cache',
-  'sec-fetch-mode': 'navigate',
-  'sec-fetch-site': 'none',
-  'sec-fetch-user': '?1',
-  'upgrade-insecure-requests': '1',
-  'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36'}
+    'accept':'text/html,application/xhtml+xml,application/xml;q=0.9,\
+    image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+    'accept-encoding':'gzip, deflate, br',
+    'accept-language':'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+    'cache-control':'no-cache',
+    'dnt':'1',
+    'pragma':'no-cache',
+    'sec-fetch-mode':'navigate',
+    'sec-fetch-site':'none',
+    'sec-fetch-user':'?1',
+    'upgrade-insecure-requests':'1',
+    'user-agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64)\
+    AppleWebKit/537.36(KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36'
+    }
 def _is_downloadable(url):
     """
     Does the url contain a downloadable resource
     """
-    
-    head = requests.head(url, allow_redirects=True, verify=False)
+    head = requests.head(url, allow_redirects=True,
+                         verify=False)
     header = head.headers
     content_type = header.get('content-type')
     if 'text' in content_type.lower():
@@ -116,7 +126,6 @@ def link_check(url, depth, check_external):
             main_url = True
     else:
         main_url = False
-        
     try:
         if _is_downloadable(url.link):
             request = requests.head(url.link, verify=False)
@@ -163,8 +172,7 @@ def link_check(url, depth, check_external):
             + _link_search(soup, 'script', 'src', url) \
             + _link_search(soup, 'source', 'srcset', url) \
             + _link_search(soup, 'img', 'src', url) \
-            + _link_search(soup, 'div', 'href', url) \
-            
+            + _link_search(soup, 'div', 'href', url)  
     if main_url:
         progress_bar = IncrementalBar('Checking: ', max=len(links),
                                       suffix='%(percent).1f%% - %(elapsed)ds')
@@ -182,7 +190,6 @@ def link_check(url, depth, check_external):
         progress_bar.finish()
         _complete_check(url)
         return status
-    
     return 0
 
 
@@ -191,8 +198,8 @@ def _link_search(soup, tag_name, attr, url):
     host = url.host
     url = url.link
     for end in ['.php', '.html']:
-        if end in url:     
-            new_url = url.replace(url.split('/')[-1], '')  
+        if end in url:
+            new_url = url.replace(url.split('/')[-1], '')
     for tag in soup.find_all(tag_name):
         if tag.has_attr(attr):
             link = tag[attr]
@@ -206,13 +213,12 @@ def _link_search(soup, tag_name, attr, url):
                 elif link.startswith('/'):
                     link = host + link
                 elif link.startswith('..'):
-                    link = new_url.replace(new_url.split('/')[-1], '') + link.replace('..','')
+                    link = new_url.replace(new_url.split('/')[-1], '') + link.replace('..', '')
                 else:
                     link = new_url + '/' + link
                 if link not in _checked_links:
                     links.append(link)
                     _checked_links.append(link)
-
         else:
             pass
     return links
