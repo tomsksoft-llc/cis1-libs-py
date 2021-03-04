@@ -58,7 +58,7 @@ Return value:
         print('Reason: ', err.reason)
         return None
 
-    data = json.loads(content)
+    data = json.loads(content.decode('utf-8'))
     if status is not None and data['issue']['status']['name'] != status:
         print("The issue status '%s' does not exist." % status)
         return False
@@ -87,7 +87,7 @@ def get_status_identifier_by_name(status_name):
         print('Reason: ', err.reason)
         return None
     else:
-        data = json.loads(content)
+        data = json.loads(content.decode('utf-8'))
     try:
         return list(filter(
             lambda x: x['name'].upper() == status_name.upper(), data['issue_statuses']))[0]['id']
