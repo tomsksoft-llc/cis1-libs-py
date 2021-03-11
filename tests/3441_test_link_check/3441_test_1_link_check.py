@@ -2,28 +2,31 @@ import sys
 import lib_test_runner
 
 # Run program and return code
-def run_program(depth, external):
-    url = 'https://deskroll.com/'
-    res = lib_test_runner.run(['../../lib-utils/link_check.py', url, depth, external], "Check with incorrect args")
-
-    return res
-
-if '__main__':
-    status = True
+def main():
+    res = 0
+    
     # Depth usage check
-    res = run_program('0', 'False')
-    if res != 2:
-        status = False
+    if lib_test_runner.run(["../../lib-utils/link_check.py", "https://deskroll.com/",
+                            "0", "False"], "must be ERROR ") != 2:
+
+        res = 2
+        
     # External usage check
-    res = run_program('1', 'Folse')
-    if res != 2:
-        status = False
+    if lib_test_runner.run(["../../lib-utils/link_check.py", "https://deskroll.com/",
+                            "1", "Folse"], "must be ERROR ") != 2:
+        res = 2
+    # --help option
+    if lib_test_runner.run(["../../lib-utils/link_check.py",
+                            "--help"], "must be OK ") != 0:
+        res = 2        
     # Parameters usage check
-    res = run_program('', '')
-    if res != 2:
-        status = False
-    # Final check
-    if status:
+    if lib_test_runner.run(["../../lib-utils/link_check.py"],
+                             "must be ERROR ") != 2:
+        res = 2     
+    if res == 0:
         lib_test_runner.test_ok()
     else:
-        lib_test_runner.test_fall()
+        lib_test_runner.test_fail()
+if '__main__':
+    main()
+
