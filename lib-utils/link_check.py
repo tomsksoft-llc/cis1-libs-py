@@ -197,6 +197,7 @@ def _link_search(soup, tag_name, attr, url):
     links = []
     host = url.host
     url = url.link
+    new_url = host
     for end in ['.php', '.html']:
         if end in url:
             new_url = url.replace(url.split('/')[-1], '')
